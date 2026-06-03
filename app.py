@@ -1,0 +1,183 @@
+import json
+import os
+import threading
+import time
+from datetime import datetime
+
+import tinytuya
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, request
+
+import switchbot
+
+load_dotenv()
+
+# --- Tuya Setup ---
+ACCESS_ID = os.getenv("TUYA_ACCESS_ID")
+ACCESS_SECRET = os.getenv("TUYA_ACCESS_SECRET")
+DEVICE_ID = os.getenv("TUYA_DEVICE_ID")
+LEVEL_MAP = {1: "low", 2: "middle", 3: "high"}
+
+cloud = tinytuya.Cloud(
+    apiRegion="eu",
+    apiKey=ACCESS_ID,
+    apiSecret=ACCESS_SECRET,
+)
+
+# --- Settings ---
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
+
+
+def load_settings():
+    with open(SETTINGS_FILE) as f:
+        return json.load(f)
+
+
+def save_settings(settings):
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(settings, f, indent=2)
+
+
+# --- AC Control ---
+def send_ac(commands):
+    return cloud.cloudrequest(
+        f"v1.0/devices/{DEVICE_ID}/commands",
+        action="POST",
+        post={"commands": commands},
+    )
+
+
+def get_ac_status():
+    result = cloud.cloudrequest(f"v1.0/devices/{DEVICE_ID}/status")
+    return {item["code"]: item["value"] for item in result.get("result", [])}
+
+
+def ac_turn_on():
+    send_ac([{"code": "switch", "value": True}])
+
+
+def ac_turn_off():
+    send_ac([{"code": "switch", "value": False}])
+
+
+def ac_set_temperature(degrees):
+    send_ac([{"code": "temp_set", "value": int(degrees)}])
+
+
+def ac_set_fan_speed(speed):
+    send_ac([{"code": "level", "value": LEVEL_MAP[speed]}])
+
+
+def fan_speed_for_diff(diff):
+    if diff < 1.0:
+        return 1
+    elif diff < 2.0:
+        return 2
+    return 3
+
+
+# --- Time Window ---
+def is_in_time_window(time_from_str, time_to_str):
+    now = datetime.now().time()
+    fmt = "%H:%M"
+    t_from = datetime.strptime(time_from_str, fmt).time()
+    t_to = datetime.strptime(time_to_str, fmt).time()
+    if t_from > t_to:  # overnight (e.g. 21:00 - 07:00)
+        return now >= t_from or now < t_to
+    return t_from <= now < t_to
+
+
+# --- Automation Loop ---
+def automation_loop():
+    while True:
+        try:
+            settings = load_settings()
+
+            if not settings.get("enabled", False):
+                time.sleep(30)
+                continue
+
+            if not is_in_time_window(settings["time_from"], settings["time_to"]):
+                time.sleep(60)
+                continue
+
+            sensor = switchbot.get_sensor_status(switchbot.METER_PRO_CO2_ID)
+            current_temp = sensor.get("temperature", 0)
+
+            if current_temp == 0:
+                time.sleep(60)
+                continue
+
+            target = settings["target_temp"]
+            ac = get_ac_status()
+            ac_on = ac.get("switch", False)
+            diff = current_temp - target
+
+            if not ac_on and diff > 0.5:
+                ac_turn_on()
+                ac_set_fan_speed(fan_speed_for_diff(diff))
+                ac_set_temperature(int(target))
+            elif ac_on and diff < -0.5:
+                ac_turn_off()
+            elif ac_on:
+                ac_set_fan_speed(fan_speed_for_diff(abs(diff)))
+
+        except Exception as e:
+            print(f"[Automation Error] {e}")
+
+        time.sleep(60)
+
+
+# --- Flask App ---
+app = Flask(__name__)
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/api/status")
+def api_status():
+    sensors = switchbot.get_all_sensors()
+    ac = get_ac_status()
+    return jsonify({
+        "sensors": sensors,
+        "ac": {
+            "switch": ac.get("switch", False),
+            "temp_current": ac.get("temp_current", 0),
+            "temp_set": ac.get("temp_set", 0),
+            "level": ac.get("level", "low"),
+            "mode": ac.get("mode", "cold"),
+        },
+    })
+
+
+@app.route("/api/settings", methods=["GET"])
+def api_get_settings():
+    return jsonify(load_settings())
+
+
+@app.route("/api/settings", methods=["POST"])
+def api_post_settings():
+    save_settings(request.json)
+    return jsonify({"success": True})
+
+
+@app.route("/api/ac/on", methods=["POST"])
+def api_ac_on():
+    ac_turn_on()
+    return jsonify({"success": True})
+
+
+@app.route("/api/ac/off", methods=["POST"])
+def api_ac_off():
+    ac_turn_off()
+    return jsonify({"success": True})
+
+
+if __name__ == "__main__":
+    t = threading.Thread(target=automation_loop, daemon=True)
+    t.start()
+    print("Automation gestartet.")
+    app.run(host="0.0.0.0", port=8080, debug=False)

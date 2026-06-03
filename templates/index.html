@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klimasteuerung</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #132d28;
+            --bg-card:   #1a3a33;
+            --bg-inner:  #112824;
+            --border:    #254d44;
+            --accent:    #e8d96a;
+            --accent-hover: #f0e580;
+            --text:      #f0ede4;
+            --text-muted:#8aada6;
+            --text-dim:  #4d7a70;
+            --green:     #5ec97a;
+            --red:       #e06060;
+            --blue:      #e8d96a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 28px;
+            letter-spacing: -0.01em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 22px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .sensor-block {
+            background: var(--bg-inner);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .sensor-block:last-child { margin-bottom: 0; }
+
+        .sensor-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .metric:last-child { border-bottom: none; }
+
+        .metric-label { font-size: 0.82rem; color: var(--text-muted); }
+
+        .metric-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .metric-value.blue  { color: var(--accent); }
+        .metric-value.green { color: var(--green); }
+        .metric-value.red   { color: var(--red); }
+
+        /* Settings */
+        .setting-block { margin-bottom: 20px; }
+
+        .setting-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toggle-label { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+        .toggle {
+            position: relative;
+            width: 46px;
+            height: 26px;
+        }
+        .toggle input { display: none; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-inner);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: 0.25s;
+            border: 1px solid var(--border);
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 2px;
+            top: 2px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: 0.25s;
+        }
+        .toggle input:checked + .toggle-slider {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--bg);
+        }
+
+        /* Temp control */
+        .temp-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 8px 0;
+        }
+        .temp-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-inner);
+            color: var(--text);
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+            line-height: 1;
+        }
+        .temp-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+        .temp-display {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent);
+            min-width: 90px;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
+        .temp-unit { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
+
+        .hint {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        /* Time selects */
+        .time-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            flex: 1;
+            background: var(--bg-inner);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 9px 10px;
+            font-size: 0.88rem;
+            outline: none;
+            font-family: inherit;
+        }
+        select:focus { border-color: var(--accent); }
+        .time-sep { color: var(--text-dim); font-size: 0.9rem; }
+
+        /* Save button */
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 4px;
+            font-family: inherit;
+            letter-spacing: 0.01em;
+        }
+        .save-btn:hover { background: var(--accent-hover); }
+
+        .save-msg {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--green);
+            margin-top: 8px;
+            height: 16px;
+        }
+
+        /* AC Status */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+        .dot.on  { background: var(--green); box-shadow: 0 0 7px var(--green); }
+        .dot.off { background: var(--red); }
+
+        /* Override buttons */
+        .override-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn-on {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: inherit;
+            background: var(--accent);
+            color: var(--bg);
+        }
+        .btn-off {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            font-family: inherit;
+            background: transparent;
+            color: var(--text);
+        }
+        .btn-on:hover  { background: var(--accent-hover); }
+        .btn-off:hover { background: var(--bg-inner); border-color: var(--red); color: var(--red); }
+
+        .override-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 20px;
+        }
+
+        /* Divider */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Klimasteuerung</h1>
+
+<div class="grid">
+
+    <!-- LEFT: Sensoren -->
+    <div class="card">
+        <div class="card-title">Sensoren</div>
+
+        <div class="sensor-block">
+            <div class="sensor-name">Meter Pro CO₂</div>
+            <div class="metric">
+                <span class="metric-label">Temperatur</span>
+                <span class="metric-value blue" id="co2-temp">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Luftfeuchtigkeit</span>
+                <span class="metric-value" id="co2-humidity">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">CO₂</span>
+                <span class="metric-value" id="co2-co2">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Batterie</span>
+                <span class="metric-value" id="co2-battery">…</span>
+            </div>
+        </div>
+
+        <div class="sensor-block">
+            <div class="sensor-name">Meter Plus</div>
+            <div class="metric">
+                <span class="metric-label">Temperatur</span>
+                <span class="metric-value blue" id="plus-temp">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Luftfeuchtigkeit</span>
+                <span class="metric-value" id="plus-humidity">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Batterie</span>
+                <span class="metric-value" id="plus-battery">…</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTER: Einstellungen -->
+    <div class="card">
+        <div class="card-title">Einstellungen</div>
+
+        <div class="setting-block">
+            <div class="toggle-row">
+                <span class="toggle-label">Automatik aktiv</span>
+                <label class="toggle">
+                    <input type="checkbox" id="enabled-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="setting-block">
+            <div class="setting-label">Zieltemperatur</div>
+            <div class="temp-control">
+                <button class="temp-btn" onclick="changeTemp(-0.5)">−</button>
+                <div class="temp-display"><span id="target-temp">22.0</span><span class="temp-unit">°C</span></div>
+                <button class="temp-btn" onclick="changeTemp(+0.5)">+</button>
+            </div>
+            <div class="hint">Einschalten ab +0.5°C · Ausschalten ab −0.5°C</div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="setting-block">
+            <div class="setting-label">Aktive Zeit</div>
+            <div class="time-row">
+                <select id="time-from"></select>
+                <span class="time-sep">bis</span>
+                <select id="time-to"></select>
+            </div>
+        </div>
+
+        <button class="save-btn" onclick="saveSettings()">Einstellungen speichern</button>
+        <div class="save-msg" id="save-msg"></div>
+    </div>
+
+    <!-- RIGHT: Klimaanlage -->
+    <div class="card">
+        <div class="card-title">Klimaanlage</div>
+
+        <div class="sensor-block">
+            <div class="metric">
+                <span class="metric-label">Status</span>
+                <span class="metric-value" id="ac-status">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Ist-Temperatur</span>
+                <span class="metric-value blue" id="ac-temp-current">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Zieltemperatur</span>
+                <span class="metric-value" id="ac-temp-set">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Lüfter</span>
+                <span class="metric-value" id="ac-level">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Modus</span>
+                <span class="metric-value" id="ac-mode">…</span>
+            </div>
+        </div>
+
+        <div class="override-row">
+            <button class="btn-on" onclick="acOn()">AN</button>
+            <button class="btn-off" onclick="acOff()">AUS</button>
+        </div>
+        <div class="override-label">Manueller Override</div>
+    </div>
+
+</div>
+
+<div class="footer">Zuletzt aktualisiert: <span id="last-updated">—</span> &nbsp;·&nbsp; Aktualisierung alle 15 Sek.</div>
+
+<script>
+    let targetTemp = 22.0;
+
+    // --- Zeit-Optionen generieren (30-Min-Schritte) ---
+    function buildTimeOptions() {
+        ['time-from', 'time-to'].forEach(id => {
+            const sel = document.getElementById(id);
+            for (let h = 0; h < 24; h++) {
+                for (let m of [0, 30]) {
+                    const opt = document.createElement('option');
+                    opt.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                    opt.textContent = opt.value;
+                    sel.appendChild(opt);
+                }
+            }
+        });
+    }
+
+    function changeTemp(delta) {
+        targetTemp = Math.round((targetTemp + delta) * 10) / 10;
+        targetTemp = Math.max(16, Math.min(30, targetTemp));
+        document.getElementById('target-temp').textContent = targetTemp.toFixed(1);
+    }
+
+    const levelLabels = { low: 'Niedrig (1)', middle: 'Mittel (2)', high: 'Hoch (3)', auto: 'Auto' };
+    const modeLabels  = { cold: 'Kühlen ❄️', hot: 'Heizen 🔥', wind: 'Lüften 💨' };
+
+    async function loadStatus() {
+        try {
+            const data = await fetch('/api/status').then(r => r.json());
+
+            const co2  = data.sensors.meter_pro_co2;
+            const plus = data.sensors.meter_plus;
+            document.getElementById('co2-temp').textContent     = `${co2.temperature} °C`;
+            document.getElementById('co2-humidity').textContent = `${co2.humidity} %`;
+            document.getElementById('co2-co2').textContent      = `${co2.co2} ppm`;
+            document.getElementById('co2-battery').textContent  = `${co2.battery} %`;
+            document.getElementById('plus-temp').textContent    = `${plus.temperature} °C`;
+            document.getElementById('plus-humidity').textContent= `${plus.humidity} %`;
+            document.getElementById('plus-battery').textContent = `${plus.battery} %`;
+
+            const ac  = data.ac;
+            const on  = ac.switch;
+            const statusEl = document.getElementById('ac-status');
+            statusEl.innerHTML = `<span class="status-badge"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? 'EIN' : 'AUS'}</span>`;
+            statusEl.className = `metric-value ${on ? 'green' : 'red'}`;
+            document.getElementById('ac-temp-current').textContent = `${ac.temp_current} °C`;
+            document.getElementById('ac-temp-set').textContent     = `${ac.temp_set} °C`;
+            document.getElementById('ac-level').textContent        = levelLabels[ac.level] || ac.level;
+            document.getElementById('ac-mode').textContent         = modeLabels[ac.mode]  || ac.mode;
+
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('de-DE');
+        } catch (e) {
+            console.error('Status-Fehler:', e);
+        }
+    }
+
+    async function loadSettings() {
+        const s = await fetch('/api/settings').then(r => r.json());
+        targetTemp = s.target_temp ?? 22.0;
+        document.getElementById('target-temp').textContent = targetTemp.toFixed(1);
+        document.getElementById('enabled-toggle').checked  = s.enabled ?? false;
+        document.getElementById('time-from').value = s.time_from ?? '21:00';
+        document.getElementById('time-to').value   = s.time_to   ?? '07:00';
+    }
+
+    async function saveSettings() {
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                enabled:     document.getElementById('enabled-toggle').checked,
+                target_temp: targetTemp,
+                time_from:   document.getElementById('time-from').value,
+                time_to:     document.getElementById('time-to').value,
+            })
+        });
+        const msg = document.getElementById('save-msg');
+        msg.textContent = '✓ Gespeichert';
+        setTimeout(() => msg.textContent = '', 2500);
+    }
+
+    async function acOn() {
+        await fetch('/api/ac/on', { method: 'POST' });
+        setTimeout(loadStatus, 1000);
+    }
+
+    async function acOff() {
+        await fetch('/api/ac/off', { method: 'POST' });
+        setTimeout(loadStatus, 1000);
+    }
+
+    // Init
+    buildTimeOptions();
+    loadSettings();
+    loadStatus();
+    setInterval(loadStatus, 15000);
+</script>
+</body>
+</html>
