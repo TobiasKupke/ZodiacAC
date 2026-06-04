@@ -28,7 +28,9 @@ cloud = tinytuya.Cloud(
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 
 # Tracks what the automation last set — used to detect physical remote use
-expected_ac_switch = None
+expected_ac_switch   = None
+expected_ac_level    = None
+expected_ac_temp_set = None
 
 
 def load_settings():
@@ -74,11 +76,15 @@ def ac_turn_off():
 
 
 def ac_set_temperature(degrees):
+    global expected_ac_temp_set
     send_ac([{"code": "temp_set", "value": int(degrees)}])
+    expected_ac_temp_set = int(degrees)
 
 
 def ac_set_fan_speed(speed):
+    global expected_ac_level
     send_ac([{"code": "level", "value": LEVEL_MAP[speed]}])
+    expected_ac_level = LEVEL_MAP[speed]
 
 
 def fan_speed_for_diff(diff):
@@ -102,7 +108,7 @@ def is_in_time_window(time_from_str, time_to_str):
 
 # --- Automation Loop ---
 def automation_loop():
-    global expected_ac_switch
+    global expected_ac_switch, expected_ac_level, expected_ac_temp_set
     while True:
         try:
             settings = load_settings()
@@ -111,18 +117,25 @@ def automation_loop():
                 time.sleep(30)
                 continue
 
-            # Detect physical remote use
-            if expected_ac_switch is not None:
+            # Detect physical remote use — always check, regardless of time window
+            if any(v is not None for v in [expected_ac_switch, expected_ac_level, expected_ac_temp_set]):
                 ac = get_ac_status()
-                actual_switch = ac.get("switch", False)
-                if actual_switch != expected_ac_switch:
-                    print(f"[Automation] Physische Fernbedienung erkannt → wechsle zu Manuell")
+                physical_change = (
+                    (expected_ac_switch   is not None and ac.get("switch")   != expected_ac_switch)   or
+                    (expected_ac_level    is not None and ac.get("level")    != expected_ac_level)    or
+                    (expected_ac_temp_set is not None and ac.get("temp_set") != expected_ac_temp_set)
+                )
+                if physical_change:
+                    print("[Automation] Physische Fernbedienung erkannt → wechsle zu Manuell")
                     settings["mode"] = "manual"
                     save_settings(settings)
-                    expected_ac_switch = None
+                    expected_ac_switch   = None
+                    expected_ac_level    = None
+                    expected_ac_temp_set = None
                     time.sleep(60)
                     continue
 
+            # Only control AC within time window
             if not is_in_time_window(settings["time_from"], settings["time_to"]):
                 time.sleep(60)
                 continue
@@ -194,7 +207,7 @@ def api_post_settings():
 
 @app.route("/api/mode", methods=["POST"])
 def api_set_mode():
-    global expected_ac_switch
+    global expected_ac_switch, expected_ac_level, expected_ac_temp_set
     mode = request.json.get("mode")
     if mode not in ("auto", "manual"):
         return jsonify({"error": "Invalid mode"}), 400
@@ -202,7 +215,10 @@ def api_set_mode():
     settings["mode"] = mode
     save_settings(settings)
     if mode == "auto":
-        expected_ac_switch = None  # Reset tracking when switching back to auto
+        # Reset tracking — automation takes over fresh
+        expected_ac_switch   = None
+        expected_ac_level    = None
+        expected_ac_temp_set = None
     return jsonify({"success": True, "mode": mode})
 
 
