@@ -1,6 +1,6 @@
 {
-  "enabled": true,
   "target_temp": 23,
   "time_from": "20:00",
-  "time_to": "08:00"
+  "time_to": "08:00",
+  "mode": "auto"
 }

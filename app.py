@@ -27,10 +27,19 @@ cloud = tinytuya.Cloud(
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 
+# Tracks what the automation last set — used to detect physical remote use
+expected_ac_switch = None
+
 
 def load_settings():
     with open(SETTINGS_FILE) as f:
-        return json.load(f)
+        data = json.load(f)
+    # Migrate old "enabled" field to "mode"
+    if "enabled" in data and "mode" not in data:
+        data["mode"] = "auto" if data.pop("enabled") else "manual"
+        save_settings(data)
+    data.setdefault("mode", "auto")
+    return data
 
 
 def save_settings(settings):
@@ -53,11 +62,15 @@ def get_ac_status():
 
 
 def ac_turn_on():
+    global expected_ac_switch
     send_ac([{"code": "switch", "value": True}])
+    expected_ac_switch = True
 
 
 def ac_turn_off():
+    global expected_ac_switch
     send_ac([{"code": "switch", "value": False}])
+    expected_ac_switch = False
 
 
 def ac_set_temperature(degrees):
@@ -89,13 +102,26 @@ def is_in_time_window(time_from_str, time_to_str):
 
 # --- Automation Loop ---
 def automation_loop():
+    global expected_ac_switch
     while True:
         try:
             settings = load_settings()
 
-            if not settings.get("enabled", False):
+            if settings.get("mode") != "auto":
                 time.sleep(30)
                 continue
+
+            # Detect physical remote use
+            if expected_ac_switch is not None:
+                ac = get_ac_status()
+                actual_switch = ac.get("switch", False)
+                if actual_switch != expected_ac_switch:
+                    print(f"[Automation] Physische Fernbedienung erkannt → wechsle zu Manuell")
+                    settings["mode"] = "manual"
+                    save_settings(settings)
+                    expected_ac_switch = None
+                    time.sleep(60)
+                    continue
 
             if not is_in_time_window(settings["time_from"], settings["time_to"]):
                 time.sleep(60)
@@ -141,6 +167,7 @@ def index():
 def api_status():
     sensors = switchbot.get_all_sensors()
     ac = get_ac_status()
+    settings = load_settings()
     return jsonify({
         "sensors": sensors,
         "ac": {
@@ -150,6 +177,7 @@ def api_status():
             "level": ac.get("level", "low"),
             "mode": ac.get("mode", "cold"),
         },
+        "control_mode": settings.get("mode", "auto"),
     })
 
 
@@ -164,15 +192,33 @@ def api_post_settings():
     return jsonify({"success": True})
 
 
+@app.route("/api/mode", methods=["POST"])
+def api_set_mode():
+    global expected_ac_switch
+    mode = request.json.get("mode")
+    if mode not in ("auto", "manual"):
+        return jsonify({"error": "Invalid mode"}), 400
+    settings = load_settings()
+    settings["mode"] = mode
+    save_settings(settings)
+    if mode == "auto":
+        expected_ac_switch = None  # Reset tracking when switching back to auto
+    return jsonify({"success": True, "mode": mode})
+
+
 @app.route("/api/ac/on", methods=["POST"])
 def api_ac_on():
+    global expected_ac_switch
     ac_turn_on()
+    expected_ac_switch = True
     return jsonify({"success": True})
 
 
 @app.route("/api/ac/off", methods=["POST"])
 def api_ac_off():
+    global expected_ac_switch
     ac_turn_off()
+    expected_ac_switch = False
     return jsonify({"success": True})
 
 
