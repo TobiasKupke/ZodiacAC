@@ -142,6 +142,22 @@
         }
         .fan-rule .stufe { font-weight: 700; color: var(--accent); }
         .fan-rule .range { color: var(--text-muted); }
+        .hy-control {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; padding: 4px 0;
+        }
+        .hy-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid var(--border); background: var(--bg-inner);
+            color: var(--text); font-size: 1.1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .hy-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+        .hy-display {
+            font-size: 1.3rem; font-weight: 700; color: var(--accent);
+            min-width: 80px; text-align: center;
+        }
         .hysterese-row {
             display: flex; justify-content: space-between;
             font-size: 0.8rem; padding: 5px 0;
@@ -284,14 +300,19 @@
 
         <div class="setting-block">
             <div class="setting-label">Hysterese</div>
-            <div class="block" style="padding: 10px 14px;">
+            <div class="hy-control">
+                <button class="hy-btn" onclick="changeHy(-0.1)">−</button>
+                <div class="hy-display">± <span id="hy-val">0.2</span> °C</div>
+                <button class="hy-btn" onclick="changeHy(+0.1)">+</button>
+            </div>
+            <div class="block" style="padding: 10px 14px; margin-top: 8px;">
                 <div class="hysterese-row">
                     <span class="hy-label">Einschalten ab</span>
-                    <span class="hy-value" id="hy-on">Ziel + 0.5 °C</span>
+                    <span class="hy-value" id="hy-on">—</span>
                 </div>
                 <div class="hysterese-row">
                     <span class="hy-label">Ausschalten ab</span>
-                    <span class="hy-value" id="hy-off">Ziel − 0.5 °C</span>
+                    <span class="hy-value" id="hy-off">—</span>
                 </div>
             </div>
         </div>
@@ -373,6 +394,7 @@
 <script>
     let targetTemp = 22.0;
     let currentMode = 'auto';
+    let hysteresis = 0.2;
 
     function buildTimeOptions() {
         ['time-from', 'time-to'].forEach(id => {
@@ -395,9 +417,16 @@
         updateHysterese();
     }
 
+    function changeHy(delta) {
+        hysteresis = Math.round((hysteresis + delta) * 10) / 10;
+        hysteresis = Math.max(0.1, Math.min(0.5, hysteresis));
+        document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
+        updateHysterese();
+    }
+
     function updateHysterese() {
-        document.getElementById('hy-on').textContent  = `${(targetTemp + 0.5).toFixed(1)} °C`;
-        document.getElementById('hy-off').textContent = `${(targetTemp - 0.5).toFixed(1)} °C`;
+        document.getElementById('hy-on').textContent  = `${(targetTemp + hysteresis).toFixed(1)} °C`;
+        document.getElementById('hy-off').textContent = `${(targetTemp - hysteresis).toFixed(1)} °C`;
     }
 
     function updateModeUI(mode) {
@@ -469,7 +498,9 @@
     async function loadSettings() {
         const s = await fetch('/api/settings').then(r => r.json());
         targetTemp = s.target_temp ?? 22.0;
+        hysteresis = s.hysteresis  ?? 0.2;
         document.getElementById('target-temp').textContent = targetTemp.toFixed(1);
+        document.getElementById('hy-val').textContent      = hysteresis.toFixed(1);
         document.getElementById('time-from').value = s.time_from ?? '21:00';
         document.getElementById('time-to').value   = s.time_to   ?? '07:00';
         updateModeUI(s.mode ?? 'auto');
@@ -483,6 +514,7 @@
             body: JSON.stringify({
                 mode:        currentMode,
                 target_temp: targetTemp,
+                hysteresis:  hysteresis,
                 time_from:   document.getElementById('time-from').value,
                 time_to:     document.getElementById('time-to').value,
             })

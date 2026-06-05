@@ -148,15 +148,16 @@ def automation_loop():
                 continue
 
             target = settings["target_temp"]
+            hysteresis = settings.get("hysteresis", 0.2)
             ac = get_ac_status()
             ac_on = ac.get("switch", False)
             diff = current_temp - target
 
-            if not ac_on and diff > 0.5:
+            if not ac_on and diff > hysteresis:
                 ac_turn_on()
                 ac_set_fan_speed(fan_speed_for_diff(diff))
                 ac_set_temperature(int(target))
-            elif ac_on and diff < -0.5:
+            elif ac_on and diff < -hysteresis:
                 ac_turn_off()
             elif ac_on:
                 ac_set_fan_speed(fan_speed_for_diff(abs(diff)))
