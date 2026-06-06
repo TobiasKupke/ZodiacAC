@@ -27,106 +27,78 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: 28px 20px;
+            padding: 0 20px 28px;
+            transition: background 0.3s, color 0.3s;
         }
 
-        header {
-            max-width: 1100px;
-            margin: 0 auto 24px;
-        }
-        .header-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 16px 0 12px;
-        }
-        .header-text {
-            text-align: left;
-        }
-        .header-club {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-        }
-        .header-title {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: var(--text);
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-        .header-stripe {
-            height: 4px;
-            background: linear-gradient(90deg, #080d18 0%, var(--accent) 30%, #f0f4ff 50%, var(--accent) 70%, #080d18 100%);
-            border-radius: 2px;
-            margin-bottom: 4px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 22px;
-            border: 1px solid var(--border);
-        }
-
-        .card-title {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .block {
-            background: var(--bg-inner);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-        }
-        .block:last-child { margin-bottom: 0; }
-
-        .block-title {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .control-badge {
-            font-size: 0.62rem;
-            background: var(--accent);
-            color: #fff;
-            padding: 1px 6px;
-            border-radius: 4px;
-            letter-spacing: 0.05em;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .metric {
+        /* ── TOP BAR ─────────────────────────────── */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 7px 0;
-            border-bottom: 1px solid var(--border);
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px 0 6px;
         }
+
+        .theme-switcher, .lang-switcher {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .theme-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background: var(--bg-inner);
+            cursor: pointer;
+            padding: 2px;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s, transform 0.1s;
+            overflow: hidden;
+        }
+        .theme-btn:hover { transform: scale(1.08); }
+        .theme-btn.active { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .theme-btn svg { width: 28px; height: 28px; }
+
+        .lang-btn {
+            width: 34px; height: 26px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background: var(--bg-inner);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s, transform 0.1s;
+            line-height: 1;
+        }
+        .lang-btn:hover { transform: scale(1.1); }
+        .lang-btn.active { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+        /* ── HEADER ──────────────────────────────── */
+        header { max-width: 1100px; margin: 0 auto 20px; }
+
+        .header-logo {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; padding: 8px 0 10px;
+        }
+        .header-text { text-align: left; }
+        .header-club { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; }
+        .header-title { font-size: 1.6rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
+        .header-stripe { height: 4px; background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, var(--text) 50%, var(--accent) 60%, transparent 100%); border-radius: 2px; margin-bottom: 4px; }
+
+        /* ── GRID ────────────────────────────────── */
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 1100px; margin: 0 auto; }
+
+        .card { background: var(--bg-card); border-radius: 20px; padding: 22px; border: 1px solid var(--border); }
+        .card-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 16px; font-weight: 600; }
+
+        .block { background: var(--bg-inner); border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .block:last-child { margin-bottom: 0; }
+        .block-title { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+        .metric { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
         .metric:last-child { border-bottom: none; }
         .metric-label { font-size: 0.82rem; color: var(--text-muted); }
         .metric-value { font-size: 1rem; font-weight: 700; color: var(--text); }
@@ -134,253 +106,144 @@
         .metric-value.green  { color: var(--green); }
         .metric-value.red    { color: var(--red); }
 
-        /* Settings */
+        /* ── SETTINGS ────────────────────────────── */
         .setting-block { margin-bottom: 18px; }
-        .setting-label {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
+        .setting-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
 
-        .temp-control {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 6px 0;
-        }
-        .temp-btn {
-            width: 38px; height: 38px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: var(--bg-inner);
-            color: var(--text);
-            font-size: 1.3rem;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s, border-color 0.2s;
-        }
+        .hy-control { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 4px 0; }
+        .hy-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-inner); color: var(--text); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
+        .hy-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+        .hy-display { font-size: 1.3rem; font-weight: 700; color: var(--accent); min-width: 80px; text-align: center; }
+
+        .temp-control { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 6px 0; }
+        .temp-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-inner); color: var(--text); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
         .temp-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-        .temp-display {
-            font-size: 2.1rem; font-weight: 800;
-            color: var(--accent); min-width: 90px; text-align: center;
-            letter-spacing: -0.02em;
-        }
+        .temp-display { font-size: 2.1rem; font-weight: 800; color: var(--accent); min-width: 90px; text-align: center; letter-spacing: -0.02em; }
         .temp-unit { font-size: 1rem; color: var(--text-muted); }
 
-        /* Fan speed rules */
-        .fan-rules { display: flex; flex-direction: column; gap: 6px; }
-        .fan-rule {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 6px 10px; border-radius: 8px;
-            background: var(--bg); border: 1px solid var(--border);
-            font-size: 0.82rem;
-        }
-        .fan-rule .stufe { font-weight: 700; color: var(--accent); }
-        .fan-rule .range { color: var(--text-muted); }
-        .hy-control {
-            display: flex; align-items: center; justify-content: center;
-            gap: 12px; padding: 4px 0;
-        }
-        .hy-btn {
-            width: 30px; height: 30px; border-radius: 50%;
-            border: 1px solid var(--border); background: var(--bg-inner);
-            color: var(--text); font-size: 1.1rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .hy-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-        .hy-display {
-            font-size: 1.3rem; font-weight: 700; color: var(--accent);
-            min-width: 80px; text-align: center;
-        }
-        .hysterese-row {
-            display: flex; justify-content: space-between;
-            font-size: 0.8rem; padding: 5px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .hysterese-row:last-child { border-bottom: none; }
-        .hysterese-row .hy-label { color: var(--text-muted); }
-        .hysterese-row .hy-value { color: var(--text); font-weight: 600; }
-
-        .time-row {
-            display: flex; align-items: center; gap: 8px;
-        }
-        select {
-            flex: 1;
-            background: var(--bg-inner); border: 1px solid var(--border);
-            color: var(--text); border-radius: 10px; padding: 9px 10px;
-            font-size: 0.88rem; outline: none; font-family: inherit;
-        }
+        .time-row { display: flex; align-items: center; gap: 8px; }
+        select { flex: 1; background: var(--bg-inner); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 9px 10px; font-size: 0.88rem; outline: none; font-family: inherit; }
         select:focus { border-color: var(--accent); }
-        .time-sep { color: var(--text-dim); font-size: 0.9rem; }
 
-        .save-btn {
-            width: 100%; padding: 12px;
-            background: var(--accent); color: var(--bg);
-            border: none; border-radius: 12px;
-            font-size: 0.9rem; font-weight: 700; cursor: pointer;
-            transition: background 0.2s; margin-top: 4px; font-family: inherit;
-        }
+        .save-btn { width: 100%; padding: 12px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 4px; font-family: inherit; }
         .save-btn:hover { background: var(--accent-hover); }
         .save-msg { text-align: center; font-size: 0.78rem; color: var(--green); margin-top: 8px; height: 16px; }
 
-        .ac-section-title {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
-        }
+        /* ── AC PANEL ────────────────────────────── */
+        .ac-section-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+        .mode-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .mode-btn { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-inner); color: var(--text-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        .mode-btn.active-auto { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .mode-btn.active-manual { background: var(--bg-inner); border-color: var(--accent); color: var(--accent); }
 
-        /* Mode toggle */
-        .mode-row {
-            display: flex; gap: 8px; margin-bottom: 16px;
-        }
-        .mode-btn {
-            flex: 1; padding: 10px;
-            border-radius: 12px; border: 1px solid var(--border);
-            background: var(--bg-inner); color: var(--text-muted);
-            font-size: 0.88rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; font-family: inherit;
-        }
-        .mode-btn.active-auto {
-            background: var(--accent); border-color: var(--accent);
-            color: #fff;
-        }
-        .mode-btn.active-manual {
-            background: #051525; border-color: #3e9bd4;
-            color: #7ac8f0;
-        }
-
-        /* Status badge */
         .status-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
         .dot { width: 9px; height: 9px; border-radius: 50%; }
         .dot.on  { background: var(--green); box-shadow: 0 0 7px var(--green); }
         .dot.off { background: var(--red); }
 
-        /* Override buttons */
         .override-row { display: flex; gap: 10px; margin-top: 12px; }
-        .btn-on, .btn-off {
-            flex: 1; padding: 12px; border-radius: 12px;
-            font-size: 0.9rem; font-weight: 700; cursor: pointer;
-            transition: opacity 0.2s; font-family: inherit;
-        }
-        .btn-on  { background: var(--accent); color: var(--bg); border: none; }
-        .btn-off { background: transparent; color: var(--text); border: 1px solid var(--border); }
-        .btn-on:hover  { background: var(--accent-hover); }
+        .btn-on  { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; background: var(--accent); color: #fff; transition: opacity 0.2s; }
+        .btn-off { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; background: transparent; color: var(--text); transition: all 0.2s; }
+        .btn-on:hover  { opacity: 0.85; }
         .btn-off:hover { border-color: var(--red); color: var(--red); }
-        .btn-on:disabled, .btn-off:disabled {
-            opacity: 0.25; cursor: not-allowed;
-        }
+        .btn-on:disabled, .btn-off:disabled { opacity: 0.25; cursor: not-allowed; }
         .override-hint { font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-top: 8px; }
 
         .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
-
-        .footer { text-align: center; font-size: 0.72rem; color: var(--text-dim); margin-top: 20px; }
+        .footer { text-align: center; font-size: 0.72rem; color: var(--text-dim); margin-top: 20px; max-width: 1100px; margin-left: auto; margin-right: auto; padding-top: 20px; }
 
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
+<!-- ── TOP BAR ── -->
+<div class="top-bar">
+    <div class="theme-switcher">
+        <!-- Belgrano -->
+        <button class="theme-btn active" id="theme-belgrano" onclick="setTheme('belgrano')" title="Club Atlético Belgrano">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Escudo_Oficial_del_Club_Atl%C3%A9tico_Belgrano.png" style="width:28px;height:28px;object-fit:contain;" alt="Belgrano">
+        </button>
+        <!-- NOB -->
+        <button class="theme-btn" id="theme-nob" onclick="setTheme('nob')" title="Newell's Old Boys">
+            <img src="/static/nob_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="NOB">
+        </button>
+        <!-- Lotaro -->
+        <button class="theme-btn" id="theme-lotaro" onclick="setTheme('lotaro')" title="Lotaro">
+            <svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
+                <rect width="70" height="70" rx="8" fill="#1a3a33"/>
+                <text x="35" y="34" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="1">LOT</text>
+                <text x="35" y="52" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="1">ARO</text>
+            </svg>
+        </button>
+        <!-- North Orbit -->
+        <button class="theme-btn" id="theme-north" onclick="setTheme('north')" title="North Kiteboarding · Orbit">
+            <svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
+                <rect width="70" height="70" rx="8" fill="#0b0b14"/>
+                <text x="35" y="30" font-family="Arial Black,sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="3">NORTH</text>
+                <text x="35" y="48" font-family="Arial Black,sans-serif" font-size="10" font-weight="900" fill="#e87b2e" text-anchor="middle" letter-spacing="2">ORBIT</text>
+                <rect x="10" y="52" width="50" height="2" rx="1" fill="#e87b2e"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="lang-switcher">
+        <button class="lang-btn" id="lang-de" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English">🇬🇧</button>
+        <button class="lang-btn" id="lang-es" onclick="setLang('es')" title="Español">🇦🇷</button>
+    </div>
+</div>
+
+<!-- ── HEADER ── -->
 <header>
     <div class="header-logo">
-        <!-- Club Atlético Belgrano Wappen (SVG) -->
-        <svg width="70" height="70" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
-            <!-- Äußerer Kreis -->
-            <circle cx="35" cy="35" r="33" fill="#3e9bd4" stroke="#f0f4ff" stroke-width="2"/>
-            <!-- Innerer Kreis -->
-            <circle cx="35" cy="35" r="27" fill="#0d1525" stroke="#3e9bd4" stroke-width="1.5"/>
-            <!-- Blauer Ring Innen -->
-            <circle cx="35" cy="35" r="24" fill="none" stroke="#3e9bd4" stroke-width="3"/>
-            <!-- AB Buchstaben -->
-            <text x="35" y="31" font-family="Arial Black, sans-serif" font-size="16" font-weight="900" fill="#3e9bd4" text-anchor="middle" letter-spacing="2">AB</text>
-            <!-- CÓRDOBA -->
-            <text x="35" y="46" font-family="Arial, sans-serif" font-size="6.5" font-weight="700" fill="#f0f4ff" text-anchor="middle" letter-spacing="1">CÓRDOBA</text>
-            <!-- Stern oben -->
-            <text x="35" y="14" font-family="Arial" font-size="9" fill="#f0f4ff" text-anchor="middle">★</text>
-            <!-- Streifen unten -->
-            <rect x="18" y="50" width="34" height="3" rx="1.5" fill="#3e9bd4" opacity="0.6"/>
-        </svg>
+        <div id="header-logo-svg">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Escudo_Oficial_del_Club_Atl%C3%A9tico_Belgrano.png" style="width:64px;height:64px;object-fit:contain;" alt="Belgrano">
+        </div>
         <div class="header-text">
-            <div class="header-club">Club Atlético Belgrano · Córdoba</div>
-            <div class="header-title">Klimasteuerung</div>
+            <div class="header-club" id="header-club">Club Atlético Belgrano · Córdoba</div>
+            <div class="header-title" data-i18n="titel">Klimasteuerung</div>
         </div>
     </div>
     <div class="header-stripe"></div>
 </header>
 
+<!-- ── GRID ── -->
 <div class="grid">
 
     <!-- LEFT: Sensoren -->
     <div class="card">
-        <div class="card-title">Sensoren</div>
+        <div class="card-title" data-i18n="sensoren">Sensoren</div>
 
         <div class="block">
-            <div class="block-title">🛏 Schlafzimmer <span class="control-badge">Steuerung</span></div>
-            <div class="metric">
-                <span class="metric-label">Temperatur</span>
-                <span class="metric-value accent" id="co2-temp">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Luftfeuchtigkeit</span>
-                <span class="metric-value" id="co2-humidity">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">CO₂</span>
-                <span class="metric-value" id="co2-co2">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Batterie</span>
-                <span class="metric-value" id="co2-battery">…</span>
-            </div>
+            <div class="block-title" data-i18n="schlafzimmer">🛏 Schlafzimmer</div>
+            <div class="metric"><span class="metric-label" data-i18n="temperatur">Temperatur</span><span class="metric-value accent" id="co2-temp">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="luftfeuchtigkeit">Luftfeuchtigkeit</span><span class="metric-value" id="co2-humidity">…</span></div>
+            <div class="metric"><span class="metric-label">CO₂</span><span class="metric-value" id="co2-co2">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="batterie">Batterie</span><span class="metric-value" id="co2-battery">…</span></div>
         </div>
 
         <div class="block">
-            <div class="block-title">🛋 Wohnzimmer</div>
-            <div class="metric">
-                <span class="metric-label">Temperatur</span>
-                <span class="metric-value accent" id="plus-temp">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Luftfeuchtigkeit</span>
-                <span class="metric-value" id="plus-humidity">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Batterie</span>
-                <span class="metric-value" id="plus-battery">…</span>
-            </div>
+            <div class="block-title" data-i18n="gaestezimmer">🚪 Gästezimmer</div>
+            <div class="metric"><span class="metric-label" data-i18n="temperatur">Temperatur</span><span class="metric-value accent" id="gaeste-temp">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="luftfeuchtigkeit">Luftfeuchtigkeit</span><span class="metric-value" id="gaeste-humidity">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="batterie">Batterie</span><span class="metric-value" id="gaeste-battery">…</span></div>
         </div>
 
         <div class="block">
-            <div class="block-title">🚪 Gästezimmer</div>
-            <div class="metric">
-                <span class="metric-label">Temperatur</span>
-                <span class="metric-value accent" id="gaeste-temp">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Luftfeuchtigkeit</span>
-                <span class="metric-value" id="gaeste-humidity">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Batterie</span>
-                <span class="metric-value" id="gaeste-battery">…</span>
-            </div>
+            <div class="block-title" data-i18n="wohnzimmer">🛋 Wohnzimmer</div>
+            <div class="metric"><span class="metric-label" data-i18n="temperatur">Temperatur</span><span class="metric-value accent" id="plus-temp">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="luftfeuchtigkeit">Luftfeuchtigkeit</span><span class="metric-value" id="plus-humidity">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="batterie">Batterie</span><span class="metric-value" id="plus-battery">…</span></div>
         </div>
     </div>
 
     <!-- CENTER: Einstellungen -->
     <div class="card">
-        <div class="card-title">Einstellungen</div>
+        <div class="card-title" data-i18n="einstellungen">Einstellungen</div>
 
-        <!-- Gemeinsame Einstellungen -->
         <div class="setting-block">
-            <div class="setting-label">Hysterese</div>
+            <div class="setting-label" data-i18n="hysterese">Hysterese</div>
             <div class="hy-control">
                 <button class="hy-btn" onclick="changeHy(-0.1)">−</button>
                 <div class="hy-display">± <span id="hy-val">0.2</span> °C</div>
@@ -389,262 +252,386 @@
         </div>
 
         <div class="setting-block">
-            <div class="setting-label">Aktive Zeit</div>
+            <div class="setting-label" data-i18n="aktive_zeit">Aktive Zeit</div>
             <div class="time-row">
                 <select id="time-from"></select>
-                <span class="time-sep">bis</span>
+                <span class="time-sep" data-i18n="bis">bis</span>
                 <select id="time-to"></select>
             </div>
         </div>
 
-        <div class="setting-block">
-            <div class="setting-label">Lüfterstufen</div>
-            <div class="fan-rules">
-                <div class="fan-rule"><span class="stufe">Stufe 1</span><span class="range">bis +1.0 °C</span></div>
-                <div class="fan-rule"><span class="stufe">Stufe 2</span><span class="range">+1.0 – +2.0 °C</span></div>
-                <div class="fan-rule"><span class="stufe">Stufe 3</span><span class="range">ab +2.0 °C</span></div>
-            </div>
-        </div>
-
         <hr class="divider">
 
-        <!-- Master Zieltemperatur -->
         <div class="setting-block">
-            <div class="setting-label">🛏 Master – Einschalttemperatur</div>
+            <div class="setting-label" data-i18n="schlafzimmer_steuerung">🛏 Schlafzimmer – Steuerung</div>
             <div class="temp-control">
-                <button class="temp-btn" onclick="changeTemp('master', -0.5)">−</button>
+                <button class="temp-btn" onclick="changeTemp('master',-0.5)">−</button>
                 <div class="temp-display"><span id="target-temp-master">22.0</span><span class="temp-unit">°C</span></div>
-                <button class="temp-btn" onclick="changeTemp('master', +0.5)">+</button>
-            </div>
-            <div class="block" style="padding: 8px 14px; margin-top: 6px;">
-                <div class="hysterese-row">
-                    <span class="hy-label">Einschalten ab</span>
-                    <span class="hy-value" id="hy-on-master">—</span>
-                </div>
-                <div class="hysterese-row">
-                    <span class="hy-label">Ausschalten ab</span>
-                    <span class="hy-value" id="hy-off-master">—</span>
-                </div>
+                <button class="temp-btn" onclick="changeTemp('master',+0.5)">+</button>
             </div>
         </div>
 
         <hr class="divider">
 
-        <!-- Gästezimmer Zieltemperatur -->
         <div class="setting-block">
-            <div class="setting-label">🚪 Gästezimmer – Einschalttemperatur</div>
+            <div class="setting-label" data-i18n="gaestezimmer_steuerung">🚪 Gästezimmer – Steuerung</div>
             <div class="temp-control">
-                <button class="temp-btn" onclick="changeTemp('gaeste', -0.5)">−</button>
+                <button class="temp-btn" onclick="changeTemp('gaeste',-0.5)">−</button>
                 <div class="temp-display"><span id="target-temp-gaeste">22.0</span><span class="temp-unit">°C</span></div>
-                <button class="temp-btn" onclick="changeTemp('gaeste', +0.5)">+</button>
-            </div>
-            <div class="block" style="padding: 8px 14px; margin-top: 6px;">
-                <div class="hysterese-row">
-                    <span class="hy-label">Einschalten ab</span>
-                    <span class="hy-value" id="hy-on-gaeste">—</span>
-                </div>
-                <div class="hysterese-row">
-                    <span class="hy-label">Ausschalten ab</span>
-                    <span class="hy-value" id="hy-off-gaeste">—</span>
-                </div>
+                <button class="temp-btn" onclick="changeTemp('gaeste',+0.5)">+</button>
             </div>
         </div>
 
-        <button class="save-btn" onclick="saveSettings()">Einstellungen speichern</button>
+        <button class="save-btn" onclick="saveSettings()" data-i18n="speichern">Einstellungen speichern</button>
         <div class="save-msg" id="save-msg"></div>
     </div>
 
     <!-- RIGHT: Klimaanlagen -->
     <div class="card">
-        <div class="card-title">Klimaanlagen</div>
+        <div class="card-title" data-i18n="klimaanlagen">Klimaanlagen</div>
 
-        <!-- Master AC -->
-        <div class="ac-section-title">🛏 Master</div>
+        <div class="ac-section-title" data-i18n="schlafzimmer">🛏 Schlafzimmer</div>
         <div class="mode-row">
-            <button class="mode-btn" id="btn-auto-master" onclick="setMode('master','auto')">⚙ Automatik</button>
-            <button class="mode-btn" id="btn-manual-master" onclick="setMode('master','manual')">✋ Manuell</button>
+            <button class="mode-btn" id="btn-auto-master" onclick="setMode('master','auto')" data-i18n="automatik">⚙ Automatik</button>
+            <button class="mode-btn" id="btn-manual-master" onclick="setMode('master','manual')" data-i18n="manuell">✋ Manuell</button>
         </div>
         <div class="block">
-            <div class="metric"><span class="metric-label">Status</span><span class="metric-value" id="ac-status-master">…</span></div>
-            <div class="metric"><span class="metric-label">Ist-Temp</span><span class="metric-value accent" id="ac-current-master">…</span></div>
-            <div class="metric"><span class="metric-label">Ziel-Temp AC</span><span class="metric-value" id="ac-set-master">…</span></div>
-            <div class="metric"><span class="metric-label">Lüfter</span><span class="metric-value" id="ac-level-master">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="status">Status</span><span class="metric-value" id="ac-status-master">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="ist_temp">Ist-Temp</span><span class="metric-value accent" id="ac-current-master">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="ziel_temp">Ziel-Temp AC</span><span class="metric-value" id="ac-set-master">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="luefter">Lüfter</span><span class="metric-value" id="ac-level-master">…</span></div>
         </div>
         <div class="override-row">
-            <button class="btn-on" id="btn-on-master" onclick="acControl('master','on')" disabled>AN</button>
-            <button class="btn-off" id="btn-off-master" onclick="acControl('master','off')" disabled>AUS</button>
+            <button class="btn-on" id="btn-on-master" onclick="acControl('master','on')" disabled data-i18n="an">AN</button>
+            <button class="btn-off" id="btn-off-master" onclick="acControl('master','off')" disabled data-i18n="aus">AUS</button>
         </div>
-        <div class="override-hint" id="hint-master">Im Automatikmodus nicht verfügbar</div>
+        <div class="override-hint" id="hint-master" data-i18n="auto_hint">Im Automatikmodus nicht verfügbar</div>
 
         <hr class="divider" style="margin-top:16px">
 
-        <!-- Gästezimmer AC -->
-        <div class="ac-section-title">🚪 Gästezimmer</div>
+        <div class="ac-section-title" data-i18n="gaestezimmer">🚪 Gästezimmer</div>
         <div class="mode-row">
-            <button class="mode-btn" id="btn-auto-gaeste" onclick="setMode('gaeste','auto')">⚙ Automatik</button>
-            <button class="mode-btn" id="btn-manual-gaeste" onclick="setMode('gaeste','manual')">✋ Manuell</button>
+            <button class="mode-btn" id="btn-auto-gaeste" onclick="setMode('gaeste','auto')" data-i18n="automatik">⚙ Automatik</button>
+            <button class="mode-btn" id="btn-manual-gaeste" onclick="setMode('gaeste','manual')" data-i18n="manuell">✋ Manuell</button>
         </div>
         <div class="block">
-            <div class="metric"><span class="metric-label">Status</span><span class="metric-value" id="ac-status-gaeste">…</span></div>
-            <div class="metric"><span class="metric-label">Ist-Temp</span><span class="metric-value accent" id="ac-current-gaeste">…</span></div>
-            <div class="metric"><span class="metric-label">Ziel-Temp AC</span><span class="metric-value" id="ac-set-gaeste">…</span></div>
-            <div class="metric"><span class="metric-label">Lüfter</span><span class="metric-value" id="ac-level-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="status">Status</span><span class="metric-value" id="ac-status-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="ist_temp">Ist-Temp</span><span class="metric-value accent" id="ac-current-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="ziel_temp">Ziel-Temp AC</span><span class="metric-value" id="ac-set-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label" data-i18n="luefter">Lüfter</span><span class="metric-value" id="ac-level-gaeste">…</span></div>
         </div>
         <div class="override-row">
-            <button class="btn-on" id="btn-on-gaeste" onclick="acControl('gaeste','on')" disabled>AN</button>
-            <button class="btn-off" id="btn-off-gaeste" onclick="acControl('gaeste','off')" disabled>AUS</button>
+            <button class="btn-on" id="btn-on-gaeste" onclick="acControl('gaeste','on')" disabled data-i18n="an">AN</button>
+            <button class="btn-off" id="btn-off-gaeste" onclick="acControl('gaeste','off')" disabled data-i18n="aus">AUS</button>
         </div>
-        <div class="override-hint" id="hint-gaeste">Im Automatikmodus nicht verfügbar</div>
+        <div class="override-hint" id="hint-gaeste" data-i18n="auto_hint">Im Automatikmodus nicht verfügbar</div>
     </div>
 
 </div>
 
-<div class="footer">Zuletzt aktualisiert: <span id="last-updated">—</span> &nbsp;·&nbsp; Aktualisierung alle 60 Sek.</div>
+<div class="footer">
+    <span data-i18n="aktualisiert">Zuletzt aktualisiert</span>: <span id="last-updated">—</span>
+    &nbsp;·&nbsp; <span data-i18n="interval">Aktualisierung alle 60 Sek.</span>
+</div>
 
 <script>
-    let targetTempMaster = 22.0;
-    let targetTempGaeste = 22.0;
-    let hysteresis = 0.2;
-    const levelLabels = { low: 'Niedrig (1)', middle: 'Mittel (2)', high: 'Hoch (3)', auto: 'Auto' };
+// ═══════════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════════
+const translations = {
+    de: {
+        titel: 'Klimasteuerung', sensoren: 'Sensoren',
+        schlafzimmer: '🛏 Schlafzimmer', gaestezimmer: '🚪 Gästezimmer', wohnzimmer: '🛋 Wohnzimmer',
+        temperatur: 'Temperatur', luftfeuchtigkeit: 'Luftfeuchtigkeit', batterie: 'Batterie',
+        einstellungen: 'Einstellungen', hysterese: 'Hysterese', aktive_zeit: 'Aktive Zeit', bis: 'bis',
+        schlafzimmer_steuerung: '🛏 Schlafzimmer – Steuerung', gaestezimmer_steuerung: '🚪 Gästezimmer – Steuerung',
+        speichern: 'Einstellungen speichern', klimaanlagen: 'Klimaanlagen',
+        automatik: '⚙ Automatik', manuell: '✋ Manuell',
+        status: 'Status', ist_temp: 'Ist-Temp', ziel_temp: 'Ziel-Temp AC', luefter: 'Lüfter',
+        an: 'AN', aus: 'AUS',
+        auto_hint: 'Im Automatikmodus nicht verfügbar', manual_hint: 'Manueller Override aktiv',
+        aktualisiert: 'Zuletzt aktualisiert', interval: 'Aktualisierung alle 60 Sek.',
+        level_low: 'Niedrig (1)', level_mid: 'Mittel (2)', level_high: 'Hoch (3)', level_auto: 'Auto',
+        status_on: 'EIN', status_off: 'AUS',
+    },
+    en: {
+        titel: 'Climate Control', sensoren: 'Sensors',
+        schlafzimmer: '🛏 Bedroom', gaestezimmer: '🚪 Guest Room', wohnzimmer: '🛋 Living Room',
+        temperatur: 'Temperature', luftfeuchtigkeit: 'Humidity', batterie: 'Battery',
+        einstellungen: 'Settings', hysterese: 'Hysteresis', aktive_zeit: 'Active Hours', bis: 'to',
+        schlafzimmer_steuerung: '🛏 Bedroom – Control', gaestezimmer_steuerung: '🚪 Guest Room – Control',
+        speichern: 'Save Settings', klimaanlagen: 'Air Conditioning',
+        automatik: '⚙ Automatic', manuell: '✋ Manual',
+        status: 'Status', ist_temp: 'Current Temp', ziel_temp: 'Target Temp AC', luefter: 'Fan',
+        an: 'ON', aus: 'OFF',
+        auto_hint: 'Not available in automatic mode', manual_hint: 'Manual override active',
+        aktualisiert: 'Last updated', interval: 'Updates every 60 sec.',
+        level_low: 'Low (1)', level_mid: 'Medium (2)', level_high: 'High (3)', level_auto: 'Auto',
+        status_on: 'ON', status_off: 'OFF',
+    },
+    es: {
+        titel: 'Control de Clima', sensoren: 'Sensores',
+        schlafzimmer: '🛏 Dormitorio', gaestezimmer: '🚪 Cuarto de Huéspedes', wohnzimmer: '🛋 Sala de Estar',
+        temperatur: 'Temperatura', luftfeuchtigkeit: 'Humedad', batterie: 'Batería',
+        einstellungen: 'Ajustes', hysterese: 'Histéresis', aktive_zeit: 'Horario Activo', bis: 'hasta',
+        schlafzimmer_steuerung: '🛏 Dormitorio – Control', gaestezimmer_steuerung: '🚪 Huéspedes – Control',
+        speichern: 'Guardar Ajustes', klimaanlagen: 'Climatización',
+        automatik: '⚙ Automático', manuell: '✋ Manual',
+        status: 'Estado', ist_temp: 'Temp Actual', ziel_temp: 'Temp Objetivo AC', luefter: 'Ventilador',
+        an: 'ON', aus: 'OFF',
+        auto_hint: 'No disponible en modo automático', manual_hint: 'Override manual activo',
+        aktualisiert: 'Última actualización', interval: 'Actualización cada 60 seg.',
+        level_low: 'Bajo (1)', level_mid: 'Medio (2)', level_high: 'Alto (3)', level_auto: 'Auto',
+        status_on: 'ON', status_off: 'OFF',
+    }
+};
 
-    function buildTimeOptions() {
-        ['time-from', 'time-to'].forEach(id => {
-            const sel = document.getElementById(id);
-            for (let h = 0; h < 24; h++) {
-                for (let m of [0, 30]) {
-                    const opt = document.createElement('option');
-                    opt.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    opt.textContent = opt.value;
-                    sel.appendChild(opt);
-                }
+// ═══════════════════════════════════════════
+// THEMES
+// ═══════════════════════════════════════════
+const themes = {
+    belgrano: {
+        club: 'Club Atlético Belgrano · Córdoba',
+        vars: {
+            '--bg':'#080d18','--bg-card':'#0d1525','--bg-inner':'#060b14',
+            '--border':'#1a2a45','--accent':'#3e9bd4','--accent-hover':'#5ab2e8',
+            '--text':'#f0f4ff','--text-muted':'#7a9bbf','--text-dim':'#3a5070',
+            '--green':'#4caf50','--red':'#e05050'
+        },
+        stripe: 'linear-gradient(90deg,transparent 0%,#3e9bd4 40%,#f0f4ff 50%,#3e9bd4 60%,transparent 100%)',
+        logo: `<img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Escudo_Oficial_del_Club_Atl%C3%A9tico_Belgrano.png" style="width:64px;height:64px;object-fit:contain;" alt="Belgrano">`
+    },
+    nob: {
+        club: "Newell's Old Boys · Rosario",
+        vars: {
+            '--bg':'#0f0f0f','--bg-card':'#1a1a1a','--bg-inner':'#111111',
+            '--border':'#2e2e2e','--accent':'#c8102e','--accent-hover':'#e0152e',
+            '--text':'#f5f5f5','--text-muted':'#999999','--text-dim':'#555555',
+            '--green':'#4caf50','--red':'#c8102e'
+        },
+        stripe: 'linear-gradient(90deg,#0f0f0f 0%,#c8102e 50%,#0f0f0f 100%)',
+        logo: `<img src="/static/nob_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="NOB">`
+    },
+    lotaro: {
+        club: 'Lotaro · Performance Trainings',
+        vars: {
+            '--bg':'#132d28','--bg-card':'#1a3a33','--bg-inner':'#112824',
+            '--border':'#254d44','--accent':'#e8d96a','--accent-hover':'#f0e580',
+            '--text':'#f0ede4','--text-muted':'#8aada6','--text-dim':'#4d7a70',
+            '--green':'#5ec97a','--red':'#e06060'
+        },
+        stripe: 'linear-gradient(90deg,#132d28 0%,#e8d96a 30%,#f0ede4 50%,#e8d96a 70%,#132d28 100%)',
+        logo: `<svg width="64" height="64" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
+            <rect width="70" height="70" rx="10" fill="#1a3a33" stroke="#e8d96a" stroke-width="2"/>
+            <text x="35" y="30" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="2">LOT</text>
+            <text x="35" y="52" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="2">ARO</text>
+        </svg>`
+    },
+    north: {
+        club: 'North Kiteboarding · Orbit',
+        vars: {
+            '--bg':'#0b0b14','--bg-card':'#131320','--bg-inner':'#08080f',
+            '--border':'#1e1e35','--accent':'#e87b2e','--accent-hover':'#f5921f',
+            '--text':'#f0f0f5','--text-muted':'#8888aa','--text-dim':'#444460',
+            '--green':'#4caf50','--red':'#e05050'
+        },
+        stripe: 'linear-gradient(90deg,#0b0b14 0%,#e87b2e 40%,#ffffff 50%,#e87b2e 60%,#0b0b14 100%)',
+        logo: `<svg width="64" height="64" viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">
+            <rect width="140" height="64" rx="8" fill="#0b0b14"/>
+            <text x="70" y="30" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="6">NORTH</text>
+            <text x="70" y="54" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="#e87b2e" text-anchor="middle" letter-spacing="4">ORBIT</text>
+        </svg>`
+    }
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentLang  = localStorage.getItem('lang')  || 'de';
+let currentTheme = localStorage.getItem('theme') || 'belgrano';
+let targetTempMaster = 22.0;
+let targetTempGaeste = 22.0;
+let hysteresis = 0.2;
+
+// ═══════════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════════
+function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('lang-' + lang).classList.add('active');
+    applyTranslation();
+}
+
+function applyTranslation() {
+    const t = translations[currentLang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+    });
+    // Update dynamic content
+    document.title = t.titel;
+}
+
+function t(key) {
+    const tr = translations[currentLang] || translations.de;
+    return tr[key] || translations.de[key] || key;
+}
+
+// ═══════════════════════════════════════════
+// THEMES
+// ═══════════════════════════════════════════
+function setTheme(name) {
+    currentTheme = name;
+    localStorage.setItem('theme', name);
+    const theme = themes[name];
+    const root = document.documentElement;
+    Object.entries(theme.vars).forEach(([k,v]) => root.style.setProperty(k, v));
+    document.querySelector('.header-stripe').style.background = theme.stripe;
+    document.getElementById('header-logo-svg').innerHTML = theme.logo;
+    document.getElementById('header-club').textContent = theme.club;
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('theme-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// AC CONTROL
+// ═══════════════════════════════════════════
+function buildTimeOptions() {
+    ['time-from','time-to'].forEach(id => {
+        const sel = document.getElementById(id);
+        for (let h = 0; h < 24; h++) {
+            for (let m of [0,30]) {
+                const opt = document.createElement('option');
+                opt.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                opt.textContent = opt.value;
+                sel.appendChild(opt);
             }
-        });
-    }
-
-    function changeTemp(ac, delta) {
-        if (ac === 'master') {
-            targetTempMaster = Math.round((targetTempMaster + delta) * 10) / 10;
-            targetTempMaster = Math.max(16, Math.min(30, targetTempMaster));
-            document.getElementById('target-temp-master').textContent = targetTempMaster.toFixed(1);
-        } else {
-            targetTempGaeste = Math.round((targetTempGaeste + delta) * 10) / 10;
-            targetTempGaeste = Math.max(16, Math.min(30, targetTempGaeste));
-            document.getElementById('target-temp-gaeste').textContent = targetTempGaeste.toFixed(1);
         }
-        updateHysterese();
-    }
+    });
+}
 
-    function changeHy(delta) {
-        hysteresis = Math.round((hysteresis + delta) * 10) / 10;
-        hysteresis = Math.max(0.1, Math.min(0.5, hysteresis));
-        document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
-        updateHysterese();
-    }
-
-    function updateHysterese() {
-        document.getElementById('hy-on-master').textContent  = `${(targetTempMaster + hysteresis).toFixed(1)} °C`;
-        document.getElementById('hy-off-master').textContent = `${(targetTempMaster - hysteresis).toFixed(1)} °C`;
-        document.getElementById('hy-on-gaeste').textContent  = `${(targetTempGaeste + hysteresis).toFixed(1)} °C`;
-        document.getElementById('hy-off-gaeste').textContent = `${(targetTempGaeste - hysteresis).toFixed(1)} °C`;
-    }
-
-    function updateModeUI(ac, mode) {
-        document.getElementById(`btn-auto-${ac}`).className   = 'mode-btn' + (mode === 'auto'   ? ' active-auto'   : '');
-        document.getElementById(`btn-manual-${ac}`).className = 'mode-btn' + (mode === 'manual' ? ' active-manual' : '');
-        const isManual = mode === 'manual';
-        document.getElementById(`btn-on-${ac}`).disabled  = !isManual;
-        document.getElementById(`btn-off-${ac}`).disabled = !isManual;
-        document.getElementById(`hint-${ac}`).textContent = isManual
-            ? 'Manueller Override aktiv'
-            : 'Im Automatikmodus nicht verfügbar';
-    }
-
-    function renderAC(ac, data) {
-        const on = data.switch;
-        const statusEl = document.getElementById(`ac-status-${ac}`);
-        statusEl.innerHTML = `<span class="status-badge"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? 'EIN' : 'AUS'}</span>`;
-        statusEl.className = `metric-value ${on ? 'green' : 'red'}`;
-        document.getElementById(`ac-current-${ac}`).textContent = `${data.temp_current} °C`;
-        document.getElementById(`ac-set-${ac}`).textContent     = `${data.temp_set} °C`;
-        document.getElementById(`ac-level-${ac}`).textContent   = levelLabels[data.level] || data.level;
-    }
-
-    async function setMode(ac, mode) {
-        await fetch(`/api/mode/${ac}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode })
-        });
-        updateModeUI(ac, mode);
-    }
-
-    async function acControl(ac, action) {
-        await fetch(`/api/ac/${ac}/${action}`, { method: 'POST' });
-        setTimeout(loadStatus, 1500);
-    }
-
-    async function loadStatus() {
-        try {
-            const data = await fetch('/api/status').then(r => r.json());
-            const { schlafzimmer: s, wohnzimmer: w, gaestezimmer: g } = data.sensors;
-
-            document.getElementById('co2-temp').textContent      = `${s.temperature} °C`;
-            document.getElementById('co2-humidity').textContent  = `${s.humidity} %`;
-            document.getElementById('co2-co2').textContent       = `${s.co2} ppm`;
-            document.getElementById('co2-battery').textContent   = `${s.battery} %`;
-            document.getElementById('plus-temp').textContent     = `${w.temperature} °C`;
-            document.getElementById('plus-humidity').textContent = `${w.humidity} %`;
-            document.getElementById('plus-battery').textContent  = `${w.battery} %`;
-            document.getElementById('gaeste-temp').textContent     = `${g.temperature} °C`;
-            document.getElementById('gaeste-humidity').textContent = `${g.humidity} %`;
-            document.getElementById('gaeste-battery').textContent  = `${g.battery} %`;
-
-            renderAC('master', data.ac_master);
-            renderAC('gaeste', data.ac_gaeste);
-
-            // Sync mode if physical remote was detected
-            updateModeUI('master', data.mode_master);
-            updateModeUI('gaeste', data.mode_gaeste);
-
-            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('de-DE');
-        } catch(e) { console.error('Status-Fehler:', e); }
-    }
-
-    async function loadSettings() {
-        const s = await fetch('/api/settings').then(r => r.json());
-        targetTempMaster = s.master?.target_temp ?? 22.0;
-        targetTempGaeste = s.gaeste?.target_temp ?? 22.0;
-        hysteresis = s.hysteresis ?? 0.2;
+function changeTemp(ac, delta) {
+    if (ac === 'master') {
+        targetTempMaster = Math.round((targetTempMaster + delta) * 10) / 10;
+        targetTempMaster = Math.max(16, Math.min(30, targetTempMaster));
         document.getElementById('target-temp-master').textContent = targetTempMaster.toFixed(1);
+    } else {
+        targetTempGaeste = Math.round((targetTempGaeste + delta) * 10) / 10;
+        targetTempGaeste = Math.max(16, Math.min(30, targetTempGaeste));
         document.getElementById('target-temp-gaeste').textContent = targetTempGaeste.toFixed(1);
-        document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
-        document.getElementById('time-from').value = s.time_from ?? '20:00';
-        document.getElementById('time-to').value   = s.time_to   ?? '08:00';
-        updateHysterese();
     }
+}
 
-    async function saveSettings() {
-        const s = await fetch('/api/settings').then(r => r.json());
-        s.hysteresis  = hysteresis;
-        s.time_from   = document.getElementById('time-from').value;
-        s.time_to     = document.getElementById('time-to').value;
-        s.master      = { ...(s.master || {}), target_temp: targetTempMaster };
-        s.gaeste      = { ...(s.gaeste || {}), target_temp: targetTempGaeste };
-        await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(s)
-        });
-        const msg = document.getElementById('save-msg');
-        msg.textContent = '✓ Gespeichert';
-        setTimeout(() => msg.textContent = '', 2500);
-    }
+function changeHy(delta) {
+    hysteresis = Math.round((hysteresis + delta) * 10) / 10;
+    hysteresis = Math.max(0.1, Math.min(0.5, hysteresis));
+    document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
+}
 
-    // Init
-    buildTimeOptions();
-    loadSettings();
-    loadStatus();
-    setInterval(loadStatus, 60000);
+function updateModeUI(ac, mode) {
+    document.getElementById(`btn-auto-${ac}`).className   = 'mode-btn' + (mode === 'auto'   ? ' active-auto'   : '');
+    document.getElementById(`btn-manual-${ac}`).className = 'mode-btn' + (mode === 'manual' ? ' active-manual' : '');
+    const isManual = mode === 'manual';
+    document.getElementById(`btn-on-${ac}`).disabled  = !isManual;
+    document.getElementById(`btn-off-${ac}`).disabled = !isManual;
+    document.getElementById(`hint-${ac}`).textContent = isManual ? t('manual_hint') : t('auto_hint');
+    // Re-apply i18n for buttons
+    document.getElementById(`btn-auto-${ac}`).textContent   = t('automatik');
+    document.getElementById(`btn-manual-${ac}`).textContent = t('manuell');
+}
+
+function levelLabel(level) {
+    const map = { low: t('level_low'), middle: t('level_mid'), high: t('level_high'), auto: t('level_auto') };
+    return map[level] || level;
+}
+
+function renderAC(ac, data) {
+    const on = data.switch;
+    const statusEl = document.getElementById(`ac-status-${ac}`);
+    statusEl.innerHTML = `<span class="status-badge"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? t('status_on') : t('status_off')}</span>`;
+    statusEl.className = `metric-value ${on ? 'green' : 'red'}`;
+    document.getElementById(`ac-current-${ac}`).textContent = `${data.temp_current} °C`;
+    document.getElementById(`ac-set-${ac}`).textContent     = `${data.temp_set} °C`;
+    document.getElementById(`ac-level-${ac}`).textContent   = levelLabel(data.level);
+}
+
+async function setMode(ac, mode) {
+    await fetch(`/api/mode/${ac}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode })
+    });
+    updateModeUI(ac, mode);
+}
+
+async function acControl(ac, action) {
+    await fetch(`/api/ac/${ac}/${action}`, { method: 'POST' });
+    setTimeout(loadStatus, 1500);
+}
+
+async function loadStatus() {
+    try {
+        const data = await fetch('/api/status').then(r => r.json());
+        const { schlafzimmer: s, wohnzimmer: w, gaestezimmer: g } = data.sensors;
+
+        document.getElementById('co2-temp').textContent      = `${s.temperature} °C`;
+        document.getElementById('co2-humidity').textContent  = `${s.humidity} %`;
+        document.getElementById('co2-co2').textContent       = `${s.co2} ppm`;
+        document.getElementById('co2-battery').textContent   = `${s.battery} %`;
+        document.getElementById('gaeste-temp').textContent     = `${g.temperature} °C`;
+        document.getElementById('gaeste-humidity').textContent = `${g.humidity} %`;
+        document.getElementById('gaeste-battery').textContent  = `${g.battery} %`;
+        document.getElementById('plus-temp').textContent     = `${w.temperature} °C`;
+        document.getElementById('plus-humidity').textContent = `${w.humidity} %`;
+        document.getElementById('plus-battery').textContent  = `${w.battery} %`;
+
+        renderAC('master', data.ac_master);
+        renderAC('gaeste', data.ac_gaeste);
+        updateModeUI('master', data.mode_master);
+        updateModeUI('gaeste', data.mode_gaeste);
+
+        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('de-DE');
+    } catch(e) { console.error('Status-Fehler:', e); }
+}
+
+async function loadSettings() {
+    const s = await fetch('/api/settings').then(r => r.json());
+    targetTempMaster = s.master?.target_temp ?? 22.0;
+    targetTempGaeste = s.gaeste?.target_temp ?? 22.0;
+    hysteresis = s.hysteresis ?? 0.2;
+    document.getElementById('target-temp-master').textContent = targetTempMaster.toFixed(1);
+    document.getElementById('target-temp-gaeste').textContent = targetTempGaeste.toFixed(1);
+    document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
+    document.getElementById('time-from').value = s.time_from ?? '20:00';
+    document.getElementById('time-to').value   = s.time_to   ?? '08:00';
+}
+
+async function saveSettings() {
+    const s = await fetch('/api/settings').then(r => r.json());
+    s.hysteresis = hysteresis;
+    s.time_from  = document.getElementById('time-from').value;
+    s.time_to    = document.getElementById('time-to').value;
+    s.master     = { ...(s.master||{}), target_temp: targetTempMaster };
+    s.gaeste     = { ...(s.gaeste||{}), target_temp: targetTempGaeste };
+    await fetch('/api/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(s)
+    });
+    const msg = document.getElementById('save-msg');
+    msg.textContent = '✓ ' + (currentLang === 'de' ? 'Gespeichert' : currentLang === 'en' ? 'Saved' : 'Guardado');
+    setTimeout(() => msg.textContent = '', 2500);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+buildTimeOptions();
+setTheme(currentTheme);
+setLang(currentLang);
+loadSettings();
+loadStatus();
+setInterval(loadStatus, 60000);
 </script>
 </body>
 </html>

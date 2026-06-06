@@ -176,7 +176,7 @@ def automation_loop():
 
 
 # --- Flask App ---
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 
 @app.route("/")

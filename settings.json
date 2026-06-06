@@ -1,7 +1,15 @@
 {
+  "gaeste": {
+    "mode": "manual",
+    "target_temp": 23.5
+  },
+  "hysteresis": 0.2,
+  "master": {
+    "mode": "auto",
+    "target_temp": 23
+  },
+  "mode": "manual",
   "target_temp": 23,
   "time_from": "20:00",
-  "time_to": "08:00",
-  "mode": "manual",
-  "hysteresis": 0.2
+  "time_to": "08:00"
 }

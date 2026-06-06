@@ -13,12 +13,9 @@ TOKEN = os.getenv("SWITCHBOT_TOKEN")
 SECRET = os.getenv("SWITCHBOT_SECRET")
 BASE_URL = "https://api.switch-bot.com"
 
-SCHLAFZIMMER_ID  = os.getenv("SWITCHBOT_METER_PRO_CO2_ID")   # Meter Pro CO2
+SCHLAFZIMMER_ID  = os.getenv("SWITCHBOT_METER_PRO_CO2_ID")   # Meter Pro CO2 — Steuerungssensor
 WOHNZIMMER_ID    = os.getenv("SWITCHBOT_METER_PLUS_ID")       # Meter Plus 1
 GAESTEZIMMER_ID  = "C89202466057"                              # Meter Plus 2
-
-# Alias for automation (uses Schlafzimmer as control sensor)
-METER_PRO_CO2_ID = SCHLAFZIMMER_ID
 
 
 def get_headers():
