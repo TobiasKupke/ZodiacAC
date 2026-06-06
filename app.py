@@ -13,10 +13,12 @@ import switchbot
 load_dotenv()
 
 # --- Tuya Setup ---
-ACCESS_ID = os.getenv("TUYA_ACCESS_ID")
-ACCESS_SECRET = os.getenv("TUYA_ACCESS_SECRET")
-DEVICE_ID = os.getenv("TUYA_DEVICE_ID")
-LEVEL_MAP = {1: "low", 2: "middle", 3: "high"}
+ACCESS_ID      = os.getenv("TUYA_ACCESS_ID")
+ACCESS_SECRET  = os.getenv("TUYA_ACCESS_SECRET")
+DEVICE_MASTER  = os.getenv("TUYA_DEVICE_ID_MASTER")
+DEVICE_GAESTE  = os.getenv("TUYA_DEVICE_ID_GAESTE")
+AC_TARGET_TEMP = 20  # Immer 20°C auf der Klimaanlage im Automatikmodus
+LEVEL_MAP      = {1: "low", 2: "middle", 3: "high"}
 
 cloud = tinytuya.Cloud(
     apiRegion="eu",
@@ -27,20 +29,22 @@ cloud = tinytuya.Cloud(
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 
-# Tracks what the automation last set — used to detect physical remote use
-expected_ac_switch   = None
-expected_ac_level    = None
-expected_ac_temp_set = None
+# Per-AC state tracking for physical remote detection
+state = {
+    "master": {"expected_switch": None, "expected_level": None, "expected_temp": None},
+    "gaeste": {"expected_switch": None, "expected_level": None, "expected_temp": None},
+}
 
 
 def load_settings():
     with open(SETTINGS_FILE) as f:
         data = json.load(f)
-    # Migrate old "enabled" field to "mode"
-    if "enabled" in data and "mode" not in data:
-        data["mode"] = "auto" if data.pop("enabled") else "manual"
-        save_settings(data)
-    data.setdefault("mode", "auto")
+    # Ensure both AC sections exist
+    data.setdefault("master", {"mode": "auto", "target_temp": 22})
+    data.setdefault("gaeste", {"mode": "auto", "target_temp": 22})
+    data.setdefault("hysteresis", 0.2)
+    data.setdefault("time_from", "20:00")
+    data.setdefault("time_to", "08:00")
     return data
 
 
@@ -50,41 +54,37 @@ def save_settings(settings):
 
 
 # --- AC Control ---
-def send_ac(commands):
+def send_ac(device_id, commands):
     return cloud.cloudrequest(
-        f"v1.0/devices/{DEVICE_ID}/commands",
+        f"v1.0/devices/{device_id}/commands",
         action="POST",
         post={"commands": commands},
     )
 
 
-def get_ac_status():
-    result = cloud.cloudrequest(f"v1.0/devices/{DEVICE_ID}/status")
+def get_ac_status(device_id):
+    result = cloud.cloudrequest(f"v1.0/devices/{device_id}/status")
     return {item["code"]: item["value"] for item in result.get("result", [])}
 
 
-def ac_turn_on():
-    global expected_ac_switch
-    send_ac([{"code": "switch", "value": True}])
-    expected_ac_switch = True
+def ac_turn_on(ac_key, device_id):
+    send_ac(device_id, [{"code": "switch", "value": True}])
+    state[ac_key]["expected_switch"] = True
 
 
-def ac_turn_off():
-    global expected_ac_switch
-    send_ac([{"code": "switch", "value": False}])
-    expected_ac_switch = False
+def ac_turn_off(ac_key, device_id):
+    send_ac(device_id, [{"code": "switch", "value": False}])
+    state[ac_key]["expected_switch"] = False
 
 
-def ac_set_temperature(degrees):
-    global expected_ac_temp_set
-    send_ac([{"code": "temp_set", "value": int(degrees)}])
-    expected_ac_temp_set = int(degrees)
+def ac_set_temperature(ac_key, device_id, degrees):
+    send_ac(device_id, [{"code": "temp_set", "value": int(degrees)}])
+    state[ac_key]["expected_temp"] = int(degrees)
 
 
-def ac_set_fan_speed(speed):
-    global expected_ac_level
-    send_ac([{"code": "level", "value": LEVEL_MAP[speed]}])
-    expected_ac_level = LEVEL_MAP[speed]
+def ac_set_fan_speed(ac_key, device_id, speed):
+    send_ac(device_id, [{"code": "level", "value": LEVEL_MAP[speed]}])
+    state[ac_key]["expected_level"] = LEVEL_MAP[speed]
 
 
 def fan_speed_for_diff(diff):
@@ -100,67 +100,74 @@ def is_in_time_window(time_from_str, time_to_str):
     now = datetime.now().time()
     fmt = "%H:%M"
     t_from = datetime.strptime(time_from_str, fmt).time()
-    t_to = datetime.strptime(time_to_str, fmt).time()
-    if t_from > t_to:  # overnight (e.g. 21:00 - 07:00)
+    t_to   = datetime.strptime(time_to_str,   fmt).time()
+    if t_from > t_to:
         return now >= t_from or now < t_to
     return t_from <= now < t_to
 
 
+# --- Single AC automation step ---
+def run_ac_automation(ac_key, device_id, sensor_temp, settings):
+    ac_settings = settings.get(ac_key, {})
+    if ac_settings.get("mode") != "auto":
+        return
+
+    st = state[ac_key]
+
+    # Detect physical remote use
+    if any(v is not None for v in [st["expected_switch"], st["expected_level"], st["expected_temp"]]):
+        ac = get_ac_status(device_id)
+        changed = (
+            (st["expected_switch"] is not None and ac.get("switch")   != st["expected_switch"]) or
+            (st["expected_level"]  is not None and ac.get("level")    != st["expected_level"])  or
+            (st["expected_temp"]   is not None and ac.get("temp_set") != st["expected_temp"])
+        )
+        if changed:
+            print(f"[{ac_key}] Physische Fernbedienung erkannt → Manuell")
+            settings[ac_key]["mode"] = "manual"
+            save_settings(settings)
+            st["expected_switch"] = st["expected_level"] = st["expected_temp"] = None
+            return
+
+    if not is_in_time_window(settings["time_from"], settings["time_to"]):
+        return
+
+    if sensor_temp == 0:
+        return
+
+    target  = ac_settings.get("target_temp", 22)
+    hyst    = settings.get("hysteresis", 0.2)
+    ac      = get_ac_status(device_id)
+    ac_on   = ac.get("switch", False)
+    diff    = sensor_temp - target
+
+    if not ac_on and diff > hyst:
+        ac_turn_on(ac_key, device_id)
+        ac_set_fan_speed(ac_key, device_id, fan_speed_for_diff(diff))
+        ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
+    elif ac_on and diff < -hyst:
+        ac_turn_off(ac_key, device_id)
+    elif ac_on:
+        ac_set_fan_speed(ac_key, device_id, fan_speed_for_diff(abs(diff)))
+        # Ensure AC target stays at 20°C
+        if ac.get("temp_set") != AC_TARGET_TEMP:
+            ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
+
+
 # --- Automation Loop ---
 def automation_loop():
-    global expected_ac_switch, expected_ac_level, expected_ac_temp_set
     while True:
         try:
             settings = load_settings()
 
-            if settings.get("mode") != "auto":
-                time.sleep(30)
-                continue
+            # Read sensors once per cycle
+            schlaf_data = switchbot.get_sensor_status(switchbot.SCHLAFZIMMER_ID)
+            gaeste_data = switchbot.get_sensor_status(switchbot.GAESTEZIMMER_ID)
+            schlaf_temp = schlaf_data.get("temperature", 0)
+            gaeste_temp = gaeste_data.get("temperature", 0)
 
-            # Detect physical remote use — always check, regardless of time window
-            if any(v is not None for v in [expected_ac_switch, expected_ac_level, expected_ac_temp_set]):
-                ac = get_ac_status()
-                physical_change = (
-                    (expected_ac_switch   is not None and ac.get("switch")   != expected_ac_switch)   or
-                    (expected_ac_level    is not None and ac.get("level")    != expected_ac_level)    or
-                    (expected_ac_temp_set is not None and ac.get("temp_set") != expected_ac_temp_set)
-                )
-                if physical_change:
-                    print("[Automation] Physische Fernbedienung erkannt → wechsle zu Manuell")
-                    settings["mode"] = "manual"
-                    save_settings(settings)
-                    expected_ac_switch   = None
-                    expected_ac_level    = None
-                    expected_ac_temp_set = None
-                    time.sleep(60)
-                    continue
-
-            # Only control AC within time window
-            if not is_in_time_window(settings["time_from"], settings["time_to"]):
-                time.sleep(60)
-                continue
-
-            sensor = switchbot.get_sensor_status(switchbot.METER_PRO_CO2_ID)
-            current_temp = sensor.get("temperature", 0)
-
-            if current_temp == 0:
-                time.sleep(60)
-                continue
-
-            target = settings["target_temp"]
-            hysteresis = settings.get("hysteresis", 0.2)
-            ac = get_ac_status()
-            ac_on = ac.get("switch", False)
-            diff = current_temp - target
-
-            if not ac_on and diff > hysteresis:
-                ac_turn_on()
-                ac_set_fan_speed(fan_speed_for_diff(diff))
-                ac_set_temperature(20)  # Immer 20°C im Automatikmodus
-            elif ac_on and diff < -hysteresis:
-                ac_turn_off()
-            elif ac_on:
-                ac_set_fan_speed(fan_speed_for_diff(abs(diff)))
+            run_ac_automation("master", DEVICE_MASTER, schlaf_temp, settings)
+            run_ac_automation("gaeste", DEVICE_GAESTE, gaeste_temp, settings)
 
         except Exception as e:
             print(f"[Automation Error] {e}")
@@ -179,20 +186,26 @@ def index():
 
 @app.route("/api/status")
 def api_status():
-    sensors = switchbot.get_all_sensors()
-    ac = get_ac_status()
-    settings = load_settings()
-    return jsonify({
-        "sensors": sensors,
-        "control_sensor": "schlafzimmer",
-        "ac": {
-            "switch": ac.get("switch", False),
+    sensors  = switchbot.get_all_sensors()
+    ac_master = get_ac_status(DEVICE_MASTER)
+    ac_gaeste = get_ac_status(DEVICE_GAESTE)
+    settings  = load_settings()
+
+    def fmt_ac(ac):
+        return {
+            "switch":       ac.get("switch", False),
             "temp_current": ac.get("temp_current", 0),
-            "temp_set": ac.get("temp_set", 0),
-            "level": ac.get("level", "low"),
-            "mode": ac.get("mode", "cold"),
-        },
-        "control_mode": settings.get("mode", "auto"),
+            "temp_set":     ac.get("temp_set", 0),
+            "level":        ac.get("level", "low"),
+            "mode":         ac.get("mode", "cold"),
+        }
+
+    return jsonify({
+        "sensors":       sensors,
+        "ac_master":     fmt_ac(ac_master),
+        "ac_gaeste":     fmt_ac(ac_gaeste),
+        "mode_master":   settings["master"].get("mode", "auto"),
+        "mode_gaeste":   settings["gaeste"].get("mode", "auto"),
     })
 
 
@@ -207,43 +220,48 @@ def api_post_settings():
     return jsonify({"success": True})
 
 
-@app.route("/api/mode", methods=["POST"])
-def api_set_mode():
-    global expected_ac_switch, expected_ac_level, expected_ac_temp_set
+@app.route("/api/mode/<ac_key>", methods=["POST"])
+def api_set_mode(ac_key):
+    if ac_key not in ("master", "gaeste"):
+        return jsonify({"error": "Invalid AC key"}), 400
     mode = request.json.get("mode")
     if mode not in ("auto", "manual"):
         return jsonify({"error": "Invalid mode"}), 400
+
     settings = load_settings()
-    settings["mode"] = mode
+    settings[ac_key]["mode"] = mode
     save_settings(settings)
+
     if mode == "auto":
-        # Reset tracking — automation takes over fresh
-        expected_ac_switch   = None
-        expected_ac_level    = None
-        expected_ac_temp_set = None
-        # Always ensure AC target is 20°C in auto mode
-        ac_set_temperature(20)
+        st = state[ac_key]
+        st["expected_switch"] = st["expected_level"] = st["expected_temp"] = None
+        device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
+        # Always set 20°C when switching to auto
+        ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
+
     return jsonify({"success": True, "mode": mode})
 
 
-@app.route("/api/ac/on", methods=["POST"])
-def api_ac_on():
-    global expected_ac_switch
-    ac_turn_on()
-    expected_ac_switch = True
+@app.route("/api/ac/<ac_key>/on", methods=["POST"])
+def api_ac_on(ac_key):
+    if ac_key not in ("master", "gaeste"):
+        return jsonify({"error": "Invalid AC key"}), 400
+    device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
+    ac_turn_on(ac_key, device_id)
     return jsonify({"success": True})
 
 
-@app.route("/api/ac/off", methods=["POST"])
-def api_ac_off():
-    global expected_ac_switch
-    ac_turn_off()
-    expected_ac_switch = False
+@app.route("/api/ac/<ac_key>/off", methods=["POST"])
+def api_ac_off(ac_key):
+    if ac_key not in ("master", "gaeste"):
+        return jsonify({"error": "Invalid AC key"}), 400
+    device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
+    ac_turn_off(ac_key, device_id)
     return jsonify({"success": True})
 
 
 if __name__ == "__main__":
     t = threading.Thread(target=automation_loop, daemon=True)
     t.start()
-    print("Automation gestartet.")
+    print("Automation gestartet (Master + Gästezimmer).")
     app.run(host="0.0.0.0", port=8080, debug=False)

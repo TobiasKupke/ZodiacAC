@@ -228,6 +228,15 @@
         .save-btn:hover { background: var(--accent-hover); }
         .save-msg { text-align: center; font-size: 0.78rem; color: var(--green); margin-top: 8px; height: 16px; }
 
+        .ac-section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
         /* Mode toggle */
         .mode-row {
             display: flex; gap: 8px; margin-bottom: 16px;
@@ -369,49 +378,13 @@
     <div class="card">
         <div class="card-title">Einstellungen</div>
 
-        <div class="setting-block">
-            <div class="setting-label">Zieltemperatur</div>
-            <div class="temp-control">
-                <button class="temp-btn" onclick="changeTemp(-0.5)">−</button>
-                <div class="temp-display"><span id="target-temp">22.0</span><span class="temp-unit">°C</span></div>
-                <button class="temp-btn" onclick="changeTemp(+0.5)">+</button>
-            </div>
-        </div>
-
+        <!-- Gemeinsame Einstellungen -->
         <div class="setting-block">
             <div class="setting-label">Hysterese</div>
             <div class="hy-control">
                 <button class="hy-btn" onclick="changeHy(-0.1)">−</button>
                 <div class="hy-display">± <span id="hy-val">0.2</span> °C</div>
                 <button class="hy-btn" onclick="changeHy(+0.1)">+</button>
-            </div>
-            <div class="block" style="padding: 10px 14px; margin-top: 8px;">
-                <div class="hysterese-row">
-                    <span class="hy-label">Einschalten ab</span>
-                    <span class="hy-value" id="hy-on">—</span>
-                </div>
-                <div class="hysterese-row">
-                    <span class="hy-label">Ausschalten ab</span>
-                    <span class="hy-value" id="hy-off">—</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="setting-block">
-            <div class="setting-label">Lüfterstufen</div>
-            <div class="fan-rules">
-                <div class="fan-rule">
-                    <span class="stufe">Stufe 1</span>
-                    <span class="range">bis +1.0 °C über Ziel</span>
-                </div>
-                <div class="fan-rule">
-                    <span class="stufe">Stufe 2</span>
-                    <span class="range">+1.0 – +2.0 °C über Ziel</span>
-                </div>
-                <div class="fan-rule">
-                    <span class="stufe">Stufe 3</span>
-                    <span class="range">ab +2.0 °C über Ziel</span>
-                </div>
             </div>
         </div>
 
@@ -424,47 +397,104 @@
             </div>
         </div>
 
+        <div class="setting-block">
+            <div class="setting-label">Lüfterstufen</div>
+            <div class="fan-rules">
+                <div class="fan-rule"><span class="stufe">Stufe 1</span><span class="range">bis +1.0 °C</span></div>
+                <div class="fan-rule"><span class="stufe">Stufe 2</span><span class="range">+1.0 – +2.0 °C</span></div>
+                <div class="fan-rule"><span class="stufe">Stufe 3</span><span class="range">ab +2.0 °C</span></div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Master Zieltemperatur -->
+        <div class="setting-block">
+            <div class="setting-label">🛏 Master – Einschalttemperatur</div>
+            <div class="temp-control">
+                <button class="temp-btn" onclick="changeTemp('master', -0.5)">−</button>
+                <div class="temp-display"><span id="target-temp-master">22.0</span><span class="temp-unit">°C</span></div>
+                <button class="temp-btn" onclick="changeTemp('master', +0.5)">+</button>
+            </div>
+            <div class="block" style="padding: 8px 14px; margin-top: 6px;">
+                <div class="hysterese-row">
+                    <span class="hy-label">Einschalten ab</span>
+                    <span class="hy-value" id="hy-on-master">—</span>
+                </div>
+                <div class="hysterese-row">
+                    <span class="hy-label">Ausschalten ab</span>
+                    <span class="hy-value" id="hy-off-master">—</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Gästezimmer Zieltemperatur -->
+        <div class="setting-block">
+            <div class="setting-label">🚪 Gästezimmer – Einschalttemperatur</div>
+            <div class="temp-control">
+                <button class="temp-btn" onclick="changeTemp('gaeste', -0.5)">−</button>
+                <div class="temp-display"><span id="target-temp-gaeste">22.0</span><span class="temp-unit">°C</span></div>
+                <button class="temp-btn" onclick="changeTemp('gaeste', +0.5)">+</button>
+            </div>
+            <div class="block" style="padding: 8px 14px; margin-top: 6px;">
+                <div class="hysterese-row">
+                    <span class="hy-label">Einschalten ab</span>
+                    <span class="hy-value" id="hy-on-gaeste">—</span>
+                </div>
+                <div class="hysterese-row">
+                    <span class="hy-label">Ausschalten ab</span>
+                    <span class="hy-value" id="hy-off-gaeste">—</span>
+                </div>
+            </div>
+        </div>
+
         <button class="save-btn" onclick="saveSettings()">Einstellungen speichern</button>
         <div class="save-msg" id="save-msg"></div>
     </div>
 
-    <!-- RIGHT: Klimaanlage -->
+    <!-- RIGHT: Klimaanlagen -->
     <div class="card">
-        <div class="card-title">Klimaanlage</div>
+        <div class="card-title">Klimaanlagen</div>
 
+        <!-- Master AC -->
+        <div class="ac-section-title">🛏 Master</div>
         <div class="mode-row">
-            <button class="mode-btn" id="btn-auto" onclick="setMode('auto')">⚙ Automatik</button>
-            <button class="mode-btn" id="btn-manual" onclick="setMode('manual')">✋ Manuell</button>
+            <button class="mode-btn" id="btn-auto-master" onclick="setMode('master','auto')">⚙ Automatik</button>
+            <button class="mode-btn" id="btn-manual-master" onclick="setMode('master','manual')">✋ Manuell</button>
         </div>
-
         <div class="block">
-            <div class="metric">
-                <span class="metric-label">Status</span>
-                <span class="metric-value" id="ac-status">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Ist-Temperatur</span>
-                <span class="metric-value accent" id="ac-temp-current">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Zieltemperatur</span>
-                <span class="metric-value" id="ac-temp-set">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Lüfter</span>
-                <span class="metric-value" id="ac-level">…</span>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Modus</span>
-                <span class="metric-value" id="ac-mode">…</span>
-            </div>
+            <div class="metric"><span class="metric-label">Status</span><span class="metric-value" id="ac-status-master">…</span></div>
+            <div class="metric"><span class="metric-label">Ist-Temp</span><span class="metric-value accent" id="ac-current-master">…</span></div>
+            <div class="metric"><span class="metric-label">Ziel-Temp AC</span><span class="metric-value" id="ac-set-master">…</span></div>
+            <div class="metric"><span class="metric-label">Lüfter</span><span class="metric-value" id="ac-level-master">…</span></div>
         </div>
-
         <div class="override-row">
-            <button class="btn-on" id="btn-on" onclick="acOn()" disabled>AN</button>
-            <button class="btn-off" id="btn-off" onclick="acOff()" disabled>AUS</button>
+            <button class="btn-on" id="btn-on-master" onclick="acControl('master','on')" disabled>AN</button>
+            <button class="btn-off" id="btn-off-master" onclick="acControl('master','off')" disabled>AUS</button>
         </div>
-        <div class="override-hint" id="override-hint">Im Automatikmodus nicht verfügbar</div>
+        <div class="override-hint" id="hint-master">Im Automatikmodus nicht verfügbar</div>
+
+        <hr class="divider" style="margin-top:16px">
+
+        <!-- Gästezimmer AC -->
+        <div class="ac-section-title">🚪 Gästezimmer</div>
+        <div class="mode-row">
+            <button class="mode-btn" id="btn-auto-gaeste" onclick="setMode('gaeste','auto')">⚙ Automatik</button>
+            <button class="mode-btn" id="btn-manual-gaeste" onclick="setMode('gaeste','manual')">✋ Manuell</button>
+        </div>
+        <div class="block">
+            <div class="metric"><span class="metric-label">Status</span><span class="metric-value" id="ac-status-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label">Ist-Temp</span><span class="metric-value accent" id="ac-current-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label">Ziel-Temp AC</span><span class="metric-value" id="ac-set-gaeste">…</span></div>
+            <div class="metric"><span class="metric-label">Lüfter</span><span class="metric-value" id="ac-level-gaeste">…</span></div>
+        </div>
+        <div class="override-row">
+            <button class="btn-on" id="btn-on-gaeste" onclick="acControl('gaeste','on')" disabled>AN</button>
+            <button class="btn-off" id="btn-off-gaeste" onclick="acControl('gaeste','off')" disabled>AUS</button>
+        </div>
+        <div class="override-hint" id="hint-gaeste">Im Automatikmodus nicht verfügbar</div>
     </div>
 
 </div>
@@ -472,9 +502,10 @@
 <div class="footer">Zuletzt aktualisiert: <span id="last-updated">—</span> &nbsp;·&nbsp; Aktualisierung alle 60 Sek.</div>
 
 <script>
-    let targetTemp = 22.0;
-    let currentMode = 'auto';
+    let targetTempMaster = 22.0;
+    let targetTempGaeste = 22.0;
     let hysteresis = 0.2;
+    const levelLabels = { low: 'Niedrig (1)', middle: 'Mittel (2)', high: 'Hoch (3)', auto: 'Auto' };
 
     function buildTimeOptions() {
         ['time-from', 'time-to'].forEach(id => {
@@ -490,10 +521,16 @@
         });
     }
 
-    function changeTemp(delta) {
-        targetTemp = Math.round((targetTemp + delta) * 10) / 10;
-        targetTemp = Math.max(16, Math.min(30, targetTemp));
-        document.getElementById('target-temp').textContent = targetTemp.toFixed(1);
+    function changeTemp(ac, delta) {
+        if (ac === 'master') {
+            targetTempMaster = Math.round((targetTempMaster + delta) * 10) / 10;
+            targetTempMaster = Math.max(16, Math.min(30, targetTempMaster));
+            document.getElementById('target-temp-master').textContent = targetTempMaster.toFixed(1);
+        } else {
+            targetTempGaeste = Math.round((targetTempGaeste + delta) * 10) / 10;
+            targetTempGaeste = Math.max(16, Math.min(30, targetTempGaeste));
+            document.getElementById('target-temp-gaeste').textContent = targetTempGaeste.toFixed(1);
+        }
         updateHysterese();
     }
 
@@ -505,117 +542,102 @@
     }
 
     function updateHysterese() {
-        document.getElementById('hy-on').textContent  = `${(targetTemp + hysteresis).toFixed(1)} °C`;
-        document.getElementById('hy-off').textContent = `${(targetTemp - hysteresis).toFixed(1)} °C`;
+        document.getElementById('hy-on-master').textContent  = `${(targetTempMaster + hysteresis).toFixed(1)} °C`;
+        document.getElementById('hy-off-master').textContent = `${(targetTempMaster - hysteresis).toFixed(1)} °C`;
+        document.getElementById('hy-on-gaeste').textContent  = `${(targetTempGaeste + hysteresis).toFixed(1)} °C`;
+        document.getElementById('hy-off-gaeste').textContent = `${(targetTempGaeste - hysteresis).toFixed(1)} °C`;
     }
 
-    function updateModeUI(mode) {
-        currentMode = mode;
-        const btnAuto   = document.getElementById('btn-auto');
-        const btnManual = document.getElementById('btn-manual');
-        const btnOn     = document.getElementById('btn-on');
-        const btnOff    = document.getElementById('btn-off');
-        const hint      = document.getElementById('override-hint');
-
-        btnAuto.className   = 'mode-btn' + (mode === 'auto'   ? ' active-auto'   : '');
-        btnManual.className = 'mode-btn' + (mode === 'manual' ? ' active-manual' : '');
-
+    function updateModeUI(ac, mode) {
+        document.getElementById(`btn-auto-${ac}`).className   = 'mode-btn' + (mode === 'auto'   ? ' active-auto'   : '');
+        document.getElementById(`btn-manual-${ac}`).className = 'mode-btn' + (mode === 'manual' ? ' active-manual' : '');
         const isManual = mode === 'manual';
-        btnOn.disabled  = !isManual;
-        btnOff.disabled = !isManual;
-        hint.textContent = isManual
+        document.getElementById(`btn-on-${ac}`).disabled  = !isManual;
+        document.getElementById(`btn-off-${ac}`).disabled = !isManual;
+        document.getElementById(`hint-${ac}`).textContent = isManual
             ? 'Manueller Override aktiv'
             : 'Im Automatikmodus nicht verfügbar';
     }
 
-    async function setMode(mode) {
-        await fetch('/api/mode', {
+    function renderAC(ac, data) {
+        const on = data.switch;
+        const statusEl = document.getElementById(`ac-status-${ac}`);
+        statusEl.innerHTML = `<span class="status-badge"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? 'EIN' : 'AUS'}</span>`;
+        statusEl.className = `metric-value ${on ? 'green' : 'red'}`;
+        document.getElementById(`ac-current-${ac}`).textContent = `${data.temp_current} °C`;
+        document.getElementById(`ac-set-${ac}`).textContent     = `${data.temp_set} °C`;
+        document.getElementById(`ac-level-${ac}`).textContent   = levelLabels[data.level] || data.level;
+    }
+
+    async function setMode(ac, mode) {
+        await fetch(`/api/mode/${ac}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mode })
         });
-        updateModeUI(mode);
+        updateModeUI(ac, mode);
     }
 
-    const levelLabels = { low: 'Niedrig (1)', middle: 'Mittel (2)', high: 'Hoch (3)', auto: 'Auto' };
-    const modeLabels  = { cold: 'Kühlen ❄️', hot: 'Heizen 🔥', wind: 'Lüften 💨' };
+    async function acControl(ac, action) {
+        await fetch(`/api/ac/${ac}/${action}`, { method: 'POST' });
+        setTimeout(loadStatus, 1500);
+    }
 
     async function loadStatus() {
         try {
             const data = await fetch('/api/status').then(r => r.json());
+            const { schlafzimmer: s, wohnzimmer: w, gaestezimmer: g } = data.sensors;
 
-            const schlaf  = data.sensors.schlafzimmer;
-            const wohn    = data.sensors.wohnzimmer;
-            const gaeste  = data.sensors.gaestezimmer;
-            document.getElementById('co2-temp').textContent      = `${schlaf.temperature} °C`;
-            document.getElementById('co2-humidity').textContent  = `${schlaf.humidity} %`;
-            document.getElementById('co2-co2').textContent       = `${schlaf.co2} ppm`;
-            document.getElementById('co2-battery').textContent   = `${schlaf.battery} %`;
-            document.getElementById('plus-temp').textContent     = `${wohn.temperature} °C`;
-            document.getElementById('plus-humidity').textContent = `${wohn.humidity} %`;
-            document.getElementById('plus-battery').textContent  = `${wohn.battery} %`;
-            document.getElementById('gaeste-temp').textContent     = `${gaeste.temperature} °C`;
-            document.getElementById('gaeste-humidity').textContent = `${gaeste.humidity} %`;
-            document.getElementById('gaeste-battery').textContent  = `${gaeste.battery} %`;
+            document.getElementById('co2-temp').textContent      = `${s.temperature} °C`;
+            document.getElementById('co2-humidity').textContent  = `${s.humidity} %`;
+            document.getElementById('co2-co2').textContent       = `${s.co2} ppm`;
+            document.getElementById('co2-battery').textContent   = `${s.battery} %`;
+            document.getElementById('plus-temp').textContent     = `${w.temperature} °C`;
+            document.getElementById('plus-humidity').textContent = `${w.humidity} %`;
+            document.getElementById('plus-battery').textContent  = `${w.battery} %`;
+            document.getElementById('gaeste-temp').textContent     = `${g.temperature} °C`;
+            document.getElementById('gaeste-humidity').textContent = `${g.humidity} %`;
+            document.getElementById('gaeste-battery').textContent  = `${g.battery} %`;
 
-            const ac = data.ac;
-            const on = ac.switch;
-            const statusEl = document.getElementById('ac-status');
-            statusEl.innerHTML = `<span class="status-badge"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? 'EIN' : 'AUS'}</span>`;
-            statusEl.className = `metric-value ${on ? 'green' : 'red'}`;
-            document.getElementById('ac-temp-current').textContent = `${ac.temp_current} °C`;
-            document.getElementById('ac-temp-set').textContent     = `${ac.temp_set} °C`;
-            document.getElementById('ac-level').textContent        = levelLabels[ac.level] || ac.level;
-            document.getElementById('ac-mode').textContent         = modeLabels[ac.mode]  || ac.mode;
+            renderAC('master', data.ac_master);
+            renderAC('gaeste', data.ac_gaeste);
 
             // Sync mode if physical remote was detected
-            if (data.control_mode !== currentMode) {
-                updateModeUI(data.control_mode);
-            }
+            updateModeUI('master', data.mode_master);
+            updateModeUI('gaeste', data.mode_gaeste);
 
             document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('de-DE');
-        } catch(e) {
-            console.error('Status-Fehler:', e);
-        }
+        } catch(e) { console.error('Status-Fehler:', e); }
     }
 
     async function loadSettings() {
         const s = await fetch('/api/settings').then(r => r.json());
-        targetTemp = s.target_temp ?? 22.0;
-        hysteresis = s.hysteresis  ?? 0.2;
-        document.getElementById('target-temp').textContent = targetTemp.toFixed(1);
-        document.getElementById('hy-val').textContent      = hysteresis.toFixed(1);
-        document.getElementById('time-from').value = s.time_from ?? '21:00';
-        document.getElementById('time-to').value   = s.time_to   ?? '07:00';
-        updateModeUI(s.mode ?? 'auto');
+        targetTempMaster = s.master?.target_temp ?? 22.0;
+        targetTempGaeste = s.gaeste?.target_temp ?? 22.0;
+        hysteresis = s.hysteresis ?? 0.2;
+        document.getElementById('target-temp-master').textContent = targetTempMaster.toFixed(1);
+        document.getElementById('target-temp-gaeste').textContent = targetTempGaeste.toFixed(1);
+        document.getElementById('hy-val').textContent = hysteresis.toFixed(1);
+        document.getElementById('time-from').value = s.time_from ?? '20:00';
+        document.getElementById('time-to').value   = s.time_to   ?? '08:00';
         updateHysterese();
     }
 
     async function saveSettings() {
+        const s = await fetch('/api/settings').then(r => r.json());
+        s.hysteresis  = hysteresis;
+        s.time_from   = document.getElementById('time-from').value;
+        s.time_to     = document.getElementById('time-to').value;
+        s.master      = { ...(s.master || {}), target_temp: targetTempMaster };
+        s.gaeste      = { ...(s.gaeste || {}), target_temp: targetTempGaeste };
         await fetch('/api/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                mode:        currentMode,
-                target_temp: targetTemp,
-                hysteresis:  hysteresis,
-                time_from:   document.getElementById('time-from').value,
-                time_to:     document.getElementById('time-to').value,
-            })
+            body: JSON.stringify(s)
         });
         const msg = document.getElementById('save-msg');
         msg.textContent = '✓ Gespeichert';
         setTimeout(() => msg.textContent = '', 2500);
-    }
-
-    async function acOn() {
-        await fetch('/api/ac/on', { method: 'POST' });
-        setTimeout(loadStatus, 1500);
-    }
-
-    async function acOff() {
-        await fetch('/api/ac/off', { method: 'POST' });
-        setTimeout(loadStatus, 1500);
     }
 
     // Init
