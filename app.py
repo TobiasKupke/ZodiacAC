@@ -260,7 +260,24 @@ def api_ac_off(ac_key):
     return jsonify({"success": True})
 
 
+def startup_safe_state():
+    """Beim Start: beide ACs auf Manuell und Aus setzen."""
+    print("Startup: Setze beide Klimaanlagen auf Manuell + Aus...")
+    try:
+        settings = load_settings()
+        settings["master"]["mode"] = "manual"
+        settings["gaeste"]["mode"] = "manual"
+        save_settings(settings)
+
+        ac_turn_off("master", DEVICE_MASTER)
+        ac_turn_off("gaeste", DEVICE_GAESTE)
+        print("Startup: Beide Klimaanlagen sind AUS und auf Manuell.")
+    except Exception as e:
+        print(f"Startup-Fehler: {e}")
+
+
 if __name__ == "__main__":
+    startup_safe_state()
     t = threading.Thread(target=automation_loop, daemon=True)
     t.start()
     print("Automation gestartet (Master + Gästezimmer).")
