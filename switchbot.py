@@ -13,8 +13,12 @@ TOKEN = os.getenv("SWITCHBOT_TOKEN")
 SECRET = os.getenv("SWITCHBOT_SECRET")
 BASE_URL = "https://api.switch-bot.com"
 
-METER_PRO_CO2_ID = os.getenv("SWITCHBOT_METER_PRO_CO2_ID")
-METER_PLUS_ID = os.getenv("SWITCHBOT_METER_PLUS_ID")
+SCHLAFZIMMER_ID  = os.getenv("SWITCHBOT_METER_PRO_CO2_ID")   # Meter Pro CO2
+WOHNZIMMER_ID    = os.getenv("SWITCHBOT_METER_PLUS_ID")       # Meter Plus 1
+GAESTEZIMMER_ID  = "C89202466057"                              # Meter Plus 2
+
+# Alias for automation (uses Schlafzimmer as control sensor)
+METER_PRO_CO2_ID = SCHLAFZIMMER_ID
 
 
 def get_headers():
@@ -38,20 +42,27 @@ def get_sensor_status(device_id):
 
 
 def get_all_sensors():
-    co2 = get_sensor_status(METER_PRO_CO2_ID)
-    plus = get_sensor_status(METER_PLUS_ID)
+    schlaf  = get_sensor_status(SCHLAFZIMMER_ID)
+    wohn    = get_sensor_status(WOHNZIMMER_ID)
+    gaeste  = get_sensor_status(GAESTEZIMMER_ID)
     return {
-        "meter_pro_co2": {
-            "name": "Meter Pro CO2",
-            "temperature": co2.get("temperature", 0),
-            "humidity": co2.get("humidity", 0),
-            "co2": co2.get("CO2", 0),
-            "battery": co2.get("battery", 0),
+        "schlafzimmer": {
+            "name": "Schlafzimmer",
+            "temperature": schlaf.get("temperature", 0),
+            "humidity": schlaf.get("humidity", 0),
+            "co2": schlaf.get("CO2", 0),
+            "battery": schlaf.get("battery", 0),
         },
-        "meter_plus": {
-            "name": "Meter Plus",
-            "temperature": plus.get("temperature", 0),
-            "humidity": plus.get("humidity", 0),
-            "battery": plus.get("battery", 0),
+        "wohnzimmer": {
+            "name": "Wohnzimmer",
+            "temperature": wohn.get("temperature", 0),
+            "humidity": wohn.get("humidity", 0),
+            "battery": wohn.get("battery", 0),
+        },
+        "gaestezimmer": {
+            "name": "Gästezimmer",
+            "temperature": gaeste.get("temperature", 0),
+            "humidity": gaeste.get("humidity", 0),
+            "battery": gaeste.get("battery", 0),
         },
     }

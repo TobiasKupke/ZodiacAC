@@ -156,7 +156,7 @@ def automation_loop():
             if not ac_on and diff > hysteresis:
                 ac_turn_on()
                 ac_set_fan_speed(fan_speed_for_diff(diff))
-                ac_set_temperature(int(target))
+                ac_set_temperature(20)  # Immer 20°C im Automatikmodus
             elif ac_on and diff < -hysteresis:
                 ac_turn_off()
             elif ac_on:
@@ -184,6 +184,7 @@ def api_status():
     settings = load_settings()
     return jsonify({
         "sensors": sensors,
+        "control_sensor": "schlafzimmer",
         "ac": {
             "switch": ac.get("switch", False),
             "temp_current": ac.get("temp_current", 0),
@@ -220,6 +221,8 @@ def api_set_mode():
         expected_ac_switch   = None
         expected_ac_level    = None
         expected_ac_temp_set = None
+        # Always ensure AC target is 20°C in auto mode
+        ac_set_temperature(20)
     return jsonify({"success": True, "mode": mode})
 
 

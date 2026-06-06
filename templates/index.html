@@ -105,6 +105,19 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-badge {
+            font-size: 0.62rem;
+            background: var(--accent);
+            color: #fff;
+            padding: 1px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         .metric {
@@ -300,7 +313,7 @@
         <div class="card-title">Sensoren</div>
 
         <div class="block">
-            <div class="block-title">Meter Pro CO₂</div>
+            <div class="block-title">🛏 Schlafzimmer <span class="control-badge">Steuerung</span></div>
             <div class="metric">
                 <span class="metric-label">Temperatur</span>
                 <span class="metric-value accent" id="co2-temp">…</span>
@@ -320,7 +333,7 @@
         </div>
 
         <div class="block">
-            <div class="block-title">Meter Plus</div>
+            <div class="block-title">🛋 Wohnzimmer</div>
             <div class="metric">
                 <span class="metric-label">Temperatur</span>
                 <span class="metric-value accent" id="plus-temp">…</span>
@@ -332,6 +345,22 @@
             <div class="metric">
                 <span class="metric-label">Batterie</span>
                 <span class="metric-value" id="plus-battery">…</span>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-title">🚪 Gästezimmer</div>
+            <div class="metric">
+                <span class="metric-label">Temperatur</span>
+                <span class="metric-value accent" id="gaeste-temp">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Luftfeuchtigkeit</span>
+                <span class="metric-value" id="gaeste-humidity">…</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Batterie</span>
+                <span class="metric-value" id="gaeste-battery">…</span>
             </div>
         </div>
     </div>
@@ -515,15 +544,19 @@
         try {
             const data = await fetch('/api/status').then(r => r.json());
 
-            const co2  = data.sensors.meter_pro_co2;
-            const plus = data.sensors.meter_plus;
-            document.getElementById('co2-temp').textContent     = `${co2.temperature} °C`;
-            document.getElementById('co2-humidity').textContent = `${co2.humidity} %`;
-            document.getElementById('co2-co2').textContent      = `${co2.co2} ppm`;
-            document.getElementById('co2-battery').textContent  = `${co2.battery} %`;
-            document.getElementById('plus-temp').textContent    = `${plus.temperature} °C`;
-            document.getElementById('plus-humidity').textContent= `${plus.humidity} %`;
-            document.getElementById('plus-battery').textContent = `${plus.battery} %`;
+            const schlaf  = data.sensors.schlafzimmer;
+            const wohn    = data.sensors.wohnzimmer;
+            const gaeste  = data.sensors.gaestezimmer;
+            document.getElementById('co2-temp').textContent      = `${schlaf.temperature} °C`;
+            document.getElementById('co2-humidity').textContent  = `${schlaf.humidity} %`;
+            document.getElementById('co2-co2').textContent       = `${schlaf.co2} ppm`;
+            document.getElementById('co2-battery').textContent   = `${schlaf.battery} %`;
+            document.getElementById('plus-temp').textContent     = `${wohn.temperature} °C`;
+            document.getElementById('plus-humidity').textContent = `${wohn.humidity} %`;
+            document.getElementById('plus-battery').textContent  = `${wohn.battery} %`;
+            document.getElementById('gaeste-temp').textContent     = `${gaeste.temperature} °C`;
+            document.getElementById('gaeste-humidity').textContent = `${gaeste.humidity} %`;
+            document.getElementById('gaeste-battery').textContent  = `${gaeste.battery} %`;
 
             const ac = data.ac;
             const on = ac.switch;
