@@ -180,6 +180,10 @@
         <button class="theme-btn" id="theme-rg" onclick="setTheme('rg')" title="Roland Garros · French Open">
             <img src="/static/rg_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Roland Garros">
         </button>
+        <!-- Boca Juniors -->
+        <button class="theme-btn" id="theme-boca" onclick="setTheme('boca')" title="Club Atlético Boca Juniors">
+            <img src="/static/boca_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Boca Juniors">
+        </button>
     </div>
 
     <div class="lang-switcher">
@@ -432,6 +436,17 @@ const themes = {
         },
         stripe: 'linear-gradient(90deg,#0c1f10 0%,#c8562a 40%,#f5f0e8 50%,#c8562a 60%,#0c1f10 100%)',
         logo: `<img src="/static/rg_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Roland Garros">`
+    },
+    boca: {
+        club: 'Club Atlético Boca Juniors · Buenos Aires',
+        vars: {
+            '--bg':'#00143c','--bg-card':'#001f58','--bg-inner':'#000f2c',
+            '--border':'#002b7a','--accent':'#f5d000','--accent-hover':'#fce030',
+            '--text':'#ffffff','--text-muted':'#a0b8e8','--text-dim':'#3a5490',
+            '--green':'#4cde80','--red':'#ff4040'
+        },
+        stripe: 'linear-gradient(90deg,#00143c 0%,#f5d000 35%,#ffffff 50%,#f5d000 65%,#00143c 100%)',
+        logo: `<img src="/static/boca_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Boca Juniors">`
     }
 };
 
