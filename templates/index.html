@@ -176,14 +176,9 @@
                 <text x="35" y="52" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="1">ARO</text>
             </svg>
         </button>
-        <!-- North Orbit -->
-        <button class="theme-btn" id="theme-north" onclick="setTheme('north')" title="North Kiteboarding · Orbit">
-            <svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
-                <rect width="70" height="70" rx="8" fill="#0b0b14"/>
-                <text x="35" y="30" font-family="Arial Black,sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="3">NORTH</text>
-                <text x="35" y="48" font-family="Arial Black,sans-serif" font-size="10" font-weight="900" fill="#e87b2e" text-anchor="middle" letter-spacing="2">ORBIT</text>
-                <rect x="10" y="52" width="50" height="2" rx="1" fill="#e87b2e"/>
-            </svg>
+        <!-- Roland Garros -->
+        <button class="theme-btn" id="theme-rg" onclick="setTheme('rg')" title="Roland Garros · French Open">
+            <img src="/static/rg_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Roland Garros">
         </button>
     </div>
 
@@ -427,20 +422,16 @@ const themes = {
             <text x="35" y="52" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="#e8d96a" text-anchor="middle" letter-spacing="2">ARO</text>
         </svg>`
     },
-    north: {
-        club: 'North Kiteboarding · Orbit',
+    rg: {
+        club: 'Roland Garros · Paris',
         vars: {
-            '--bg':'#0b0b14','--bg-card':'#131320','--bg-inner':'#08080f',
-            '--border':'#1e1e35','--accent':'#e87b2e','--accent-hover':'#f5921f',
-            '--text':'#f0f0f5','--text-muted':'#8888aa','--text-dim':'#444460',
-            '--green':'#4caf50','--red':'#e05050'
+            '--bg':'#0c1f10','--bg-card':'#122918','--bg-inner':'#09180d',
+            '--border':'#1e3d26','--accent':'#c8562a','--accent-hover':'#e06030',
+            '--text':'#f5f0e8','--text-muted':'#8aaa8e','--text-dim':'#3a5e40',
+            '--green':'#5ec97a','--red':'#c8562a'
         },
-        stripe: 'linear-gradient(90deg,#0b0b14 0%,#e87b2e 40%,#ffffff 50%,#e87b2e 60%,#0b0b14 100%)',
-        logo: `<svg width="64" height="64" viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">
-            <rect width="140" height="64" rx="8" fill="#0b0b14"/>
-            <text x="70" y="30" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="6">NORTH</text>
-            <text x="70" y="54" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="#e87b2e" text-anchor="middle" letter-spacing="4">ORBIT</text>
-        </svg>`
+        stripe: 'linear-gradient(90deg,#0c1f10 0%,#c8562a 40%,#f5f0e8 50%,#c8562a 60%,#0c1f10 100%)',
+        logo: `<img src="/static/rg_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Roland Garros">`
     }
 };
 
