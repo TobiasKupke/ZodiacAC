@@ -349,19 +349,35 @@ def api_ac_off(ac_key):
 
 
 def startup_safe_state():
-    """Beim Start: beide ACs auf Manuell und Aus setzen."""
+    """Beim Start: beide ACs auf Manuell und Aus setzen — mit Verifikation und Retry."""
     print("Startup: Setze beide Klimaanlagen auf Manuell + Aus...")
     try:
         settings = load_settings()
         settings["master"]["mode"] = "manual"
         settings["gaeste"]["mode"] = "manual"
         save_settings(settings)
-
-        ac_turn_off("master", DEVICE_MASTER)
-        ac_turn_off("gaeste", DEVICE_GAESTE)
-        print("Startup: Beide Klimaanlagen sind AUS und auf Manuell.")
     except Exception as e:
-        print(f"Startup-Fehler: {e}")
+        print(f"Startup-Fehler (Settings): {e}")
+
+    for attempt in range(1, 4):
+        try:
+            ac_turn_off("master", DEVICE_MASTER)
+            ac_turn_off("gaeste", DEVICE_GAESTE)
+            time.sleep(3)
+
+            master_on = get_ac_status(DEVICE_MASTER).get("switch", True)
+            gaeste_on = get_ac_status(DEVICE_GAESTE).get("switch", True)
+
+            if not master_on and not gaeste_on:
+                print(f"Startup: Beide Klimaanlagen sind AUS und auf Manuell. (Versuch {attempt})")
+                return
+
+            print(f"Startup: Versuch {attempt} — noch an (Master={master_on}, Gäste={gaeste_on}), retry...")
+        except Exception as e:
+            print(f"Startup-Fehler (Versuch {attempt}): {e}")
+        time.sleep(5)
+
+    print("Startup: WARNUNG — Klimaanlagen konnten nicht zuverlässig ausgeschaltet werden!")
 
 
 if __name__ == "__main__":
