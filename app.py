@@ -113,8 +113,9 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
         return
 
     st = state[ac_key]
+    ac = None  # lazy-loaded, at most one API call per cycle
 
-    # Detect physical remote use
+    # Detect physical remote use (only when we have expected state to compare)
     if any(v is not None for v in [st["expected_switch"], st["expected_level"], st["expected_temp"]]):
         ac = get_ac_status(device_id)
         changed = (
@@ -129,7 +130,16 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
             st["expected_switch"] = st["expected_level"] = st["expected_temp"] = None
             return
 
+    # Outside time window: make sure AC is off
     if not is_in_time_window(settings["time_from"], settings["time_to"]):
+        if st["expected_switch"] is not False:  # Skip redundant API call if already confirmed off
+            if ac is None:
+                ac = get_ac_status(device_id)
+            if ac.get("switch", False):
+                print(f"[{ac_key}] Außerhalb Zeitfenster und AN → Ausschalten")
+                ac_turn_off(ac_key, device_id)
+                st["expected_level"] = None
+                st["expected_temp"]  = None
         return
 
     if sensor_temp == 0:
@@ -137,7 +147,8 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
 
     target  = ac_settings.get("target_temp", 22)
     hyst    = settings.get("hysteresis", 0.2)
-    ac      = get_ac_status(device_id)
+    if ac is None:
+        ac = get_ac_status(device_id)
     ac_on   = ac.get("switch", False)
     diff    = sensor_temp - target
 
@@ -234,9 +245,12 @@ def api_set_mode(ac_key):
 
     if mode == "auto":
         st = state[ac_key]
-        st["expected_switch"] = st["expected_level"] = st["expected_temp"] = None
         device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
-        # Always set 20°C when switching to auto
+        # Sync expected state with current hardware so remote detection works immediately
+        ac = get_ac_status(device_id)
+        st["expected_switch"] = ac.get("switch", False)
+        st["expected_level"]  = ac.get("level", "low")
+        st["expected_temp"]   = AC_TARGET_TEMP
         ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
 
     return jsonify({"success": True, "mode": mode})
