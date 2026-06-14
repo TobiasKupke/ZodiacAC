@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verlauf · Klimasteuerung</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg:           #080d18;
+            --bg-card:      #0d1525;
+            --bg-inner:     #060b14;
+            --border:       #1a2a45;
+            --accent:       #3e9bd4;
+            --accent-hover: #5ab2e8;
+            --text:         #f0f4ff;
+            --text-muted:   #7a9bbf;
+            --text-dim:     #3a5070;
+            --green:        #4caf50;
+            --red:          #e05050;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0 20px 40px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 14px 0 8px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-inner);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s;
+            font-family: inherit;
+        }
+        .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .range-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .range-btn {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-inner);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .range-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .range-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        .stripe {
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, var(--text) 50%, var(--accent) 60%, transparent 100%);
+            border-radius: 2px;
+            max-width: 1100px;
+            margin: 0 auto 20px;
+        }
+
+        .charts { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 22px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-wrap { position: relative; height: 260px; }
+        .chart-wrap-sm { position: relative; height: 180px; }
+
+        .empty-msg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .legend-line {
+            width: 20px; height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .status-bar {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <a href="/" class="back-btn">← Steuerung</a>
+    <div class="page-title">Verlauf</div>
+    <div class="range-btns">
+        <button class="range-btn" onclick="loadRange('6h')">6h</button>
+        <button class="range-btn active" onclick="loadRange('24h')">24h</button>
+        <button class="range-btn" onclick="loadRange('7d')">7 Tage</button>
+        <button class="range-btn" onclick="loadRange('30d')">30 Tage</button>
+    </div>
+</div>
+
+<div class="stripe"></div>
+
+<div class="charts">
+
+    <!-- Temperaturen -->
+    <div class="card">
+        <div class="card-title">Temperaturen</div>
+        <div class="chart-wrap">
+            <canvas id="chartTemp"></canvas>
+            <div class="empty-msg" id="emptyTemp" style="display:none">Noch keine Daten vorhanden</div>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#5ab2e8"></div>Schlafzimmer</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#5ec97a"></div>Gästezimmer</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f0c040"></div>Wohnzimmer</div>
+        </div>
+    </div>
+
+    <!-- Klimaanlage Master -->
+    <div class="card">
+        <div class="card-title">Klimaanlage Schlafzimmer</div>
+        <div class="chart-wrap-sm">
+            <canvas id="chartMaster"></canvas>
+            <div class="empty-msg" id="emptyMaster" style="display:none">Noch keine Daten vorhanden</div>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-line" style="background:#5ab2e8"></div>Lüfterstärke (Aus=0 · Low=1 · Mid=2 · High=3)</div>
+            <div class="legend-item"><div class="legend-line" style="background:#e05050;opacity:0.4"></div>Manuell-Phasen (Hintergrund)</div>
+        </div>
+    </div>
+
+    <!-- Klimaanlage Gästezimmer -->
+    <div class="card">
+        <div class="card-title">Klimaanlage Gästezimmer</div>
+        <div class="chart-wrap-sm">
+            <canvas id="chartGaeste"></canvas>
+            <div class="empty-msg" id="emptyGaeste" style="display:none">Noch keine Daten vorhanden</div>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-line" style="background:#5ec97a"></div>Lüfterstärke (Aus=0 · Low=1 · Mid=2 · High=3)</div>
+            <div class="legend-item"><div class="legend-line" style="background:#e05050;opacity:0.4"></div>Manuell-Phasen (Hintergrund)</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="status-bar" id="statusBar">Lade Daten…</div>
+
+<script>
+// ── Theme from localStorage ──────────────────────────────────
+const themes = {
+    belgrano: {'--bg':'#080d18','--bg-card':'#0d1525','--bg-inner':'#060b14','--border':'#1a2a45','--accent':'#3e9bd4','--accent-hover':'#5ab2e8','--text':'#f0f4ff','--text-muted':'#7a9bbf','--text-dim':'#3a5070','--green':'#4caf50','--red':'#e05050'},
+    nob:      {'--bg':'#0f0f0f','--bg-card':'#1a1a1a','--bg-inner':'#111111','--border':'#2e2e2e','--accent':'#c8102e','--accent-hover':'#e0152e','--text':'#f5f5f5','--text-muted':'#999999','--text-dim':'#555555','--green':'#4caf50','--red':'#c8102e'},
+    lotaro:   {'--bg':'#132d28','--bg-card':'#1a3a33','--bg-inner':'#112824','--border':'#254d44','--accent':'#e8d96a','--accent-hover':'#f0e580','--text':'#f0ede4','--text-muted':'#8aada6','--text-dim':'#4d7a70','--green':'#5ec97a','--red':'#e06060'},
+    rg:       {'--bg':'#0c1f10','--bg-card':'#122918','--bg-inner':'#09180d','--border':'#1e3d26','--accent':'#c8562a','--accent-hover':'#e06030','--text':'#f5f0e8','--text-muted':'#8aaa8e','--text-dim':'#3a5e40','--green':'#5ec97a','--red':'#c8562a'},
+    boca:     {'--bg':'#00143c','--bg-card':'#001f58','--bg-inner':'#000f2c','--border':'#002b7a','--accent':'#f5d000','--accent-hover':'#fce030','--text':'#ffffff','--text-muted':'#a0b8e8','--text-dim':'#3a5490','--green':'#4cde80','--red':'#ff4040'},
+};
+const savedTheme = localStorage.getItem('theme') || 'belgrano';
+const themeVars  = themes[savedTheme] || themes.belgrano;
+const root = document.documentElement;
+Object.entries(themeVars).forEach(([k,v]) => root.style.setProperty(k, v));
+
+// ── Fan speed mapping ────────────────────────────────────────
+const FAN_VAL = { low: 1, middle: 2, high: 3 };
+function fanNum(on, level) { return on ? (FAN_VAL[level] || 1) : 0; }
+
+// ── Chart instances ──────────────────────────────────────────
+let chartTemp, chartMaster, chartGaeste;
+
+const gridColor  = 'rgba(255,255,255,0.06)';
+const tickColor  = getComputedStyle(root).getPropertyValue('--text-dim').trim();
+const fontFamily = "'Inter', sans-serif";
+
+function baseTimeAxis(unit) {
+    return {
+        type: 'time',
+        time: { unit },
+        grid: { color: gridColor },
+        ticks: { color: tickColor, font: { family: fontFamily, size: 11 }, maxRotation: 0 },
+    };
+}
+function baseYAxis(min, max, stepSize) {
+    return {
+        min, max,
+        grid: { color: gridColor },
+        ticks: { color: tickColor, font: { family: fontFamily, size: 11 }, stepSize },
+    };
+}
+
+function makeManualBands(rows, onKey, modeKey) {
+    const bands = [];
+    let start = null;
+    rows.forEach(r => {
+        const isManual = r[modeKey] === 'manual';
+        if (isManual && start === null) start = r.ts * 1000;
+        if (!isManual && start !== null) { bands.push([start, r.ts * 1000]); start = null; }
+    });
+    if (start !== null) bands.push([start, rows[rows.length-1].ts * 1000]);
+    return bands;
+}
+
+function manualPlugin(bands, yMax) {
+    return {
+        id: 'manualBands',
+        beforeDraw(chart) {
+            const {ctx, chartArea: {left, right, top, bottom}, scales: {x, y}} = chart;
+            ctx.save();
+            ctx.fillStyle = 'rgba(224,80,80,0.13)';
+            bands.forEach(([s, e]) => {
+                const x0 = x.getPixelForValue(s);
+                const x1 = x.getPixelForValue(e);
+                ctx.fillRect(Math.max(x0, left), top, Math.min(x1, right) - Math.max(x0, left), bottom - top);
+            });
+            ctx.restore();
+        }
+    };
+}
+
+function timeUnit(range) {
+    return { '6h': 'hour', '24h': 'hour', '7d': 'day', '30d': 'day' }[range] || 'hour';
+}
+
+function buildCharts(rows, range) {
+    const labels = rows.map(r => r.ts * 1000);
+    const unit   = timeUnit(range);
+
+    // ── Temperature chart ────────────────────────────────────
+    const tempData = {
+        labels,
+        datasets: [
+            { label: 'Schlafzimmer', data: rows.map(r => r.temp_schlaf), borderColor: '#5ab2e8', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+            { label: 'Gästezimmer',  data: rows.map(r => r.temp_gaeste), borderColor: '#5ec97a', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+            { label: 'Wohnzimmer',   data: rows.map(r => r.temp_wohn),   borderColor: '#f0c040', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+        ]
+    };
+    const allTemps = rows.flatMap(r => [r.temp_schlaf, r.temp_gaeste, r.temp_wohn]).filter(Boolean);
+    const tMin = allTemps.length ? Math.floor(Math.min(...allTemps)) - 1 : 15;
+    const tMax = allTemps.length ? Math.ceil(Math.max(...allTemps))  + 1 : 35;
+
+    if (chartTemp) chartTemp.destroy();
+    chartTemp = new Chart(document.getElementById('chartTemp'), {
+        type: 'line',
+        data: tempData,
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+            scales: { x: baseTimeAxis(unit), y: baseYAxis(tMin, tMax, 1) }
+        }
+    });
+
+    // ── Master AC chart ───────────────────────────────────────
+    const masterFan   = rows.map(r => fanNum(r.master_on, r.master_fan));
+    const masterBands = makeManualBands(rows, 'master_on', 'master_mode');
+
+    if (chartMaster) chartMaster.destroy();
+    chartMaster = new Chart(document.getElementById('chartMaster'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{ label: 'Lüfter', data: masterFan, borderColor: '#5ab2e8', backgroundColor: 'rgba(90,178,232,0.15)', fill: true, borderWidth: 2, pointRadius: 0, stepped: true }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false }, manualBands: manualPlugin(masterBands) },
+            scales: { x: baseTimeAxis(unit), y: { ...baseYAxis(0, 3, 1), ticks: { ...baseYAxis(0,3,1).ticks, callback: v => ['Aus','Low','Mid','High'][v] ?? v } } }
+        },
+        plugins: [manualPlugin(masterBands)]
+    });
+
+    // ── Gäste AC chart ────────────────────────────────────────
+    const gaesteFan   = rows.map(r => fanNum(r.gaeste_on, r.gaeste_fan));
+    const gaesteBands = makeManualBands(rows, 'gaeste_on', 'gaeste_mode');
+
+    if (chartGaeste) chartGaeste.destroy();
+    chartGaeste = new Chart(document.getElementById('chartGaeste'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{ label: 'Lüfter', data: gaesteFan, borderColor: '#5ec97a', backgroundColor: 'rgba(94,201,122,0.15)', fill: true, borderWidth: 2, pointRadius: 0, stepped: true }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+            scales: { x: baseTimeAxis(unit), y: { ...baseYAxis(0, 3, 1), ticks: { ...baseYAxis(0,3,1).ticks, callback: v => ['Aus','Low','Mid','High'][v] ?? v } } }
+        },
+        plugins: [manualPlugin(gaesteBands)]
+    });
+}
+
+// ── Load data ────────────────────────────────────────────────
+let currentRange = '24h';
+
+async function loadRange(range) {
+    currentRange = range;
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('statusBar').textContent = 'Lade Daten…';
+    await load();
+}
+
+async function load() {
+    const rows = await fetch(`/api/history?range=${currentRange}`).then(r => r.json());
+    const hasData = rows.length > 0;
+
+    ['Temp','Master','Gaeste'].forEach(k => {
+        document.getElementById(`empty${k}`).style.display = hasData ? 'none' : 'flex';
+        document.getElementById(`chart${k}`).style.display = hasData ? 'block' : 'none';
+    });
+
+    if (hasData) buildCharts(rows, currentRange);
+
+    const now = new Date().toLocaleTimeString('de-DE');
+    document.getElementById('statusBar').textContent = hasData
+        ? `${rows.length} Datenpunkte · Zuletzt aktualisiert: ${now}`
+        : `Noch keine Verlaufsdaten — Daten werden ab jetzt jede Minute aufgezeichnet · ${now}`;
+}
+
+load();
+setInterval(load, 60000);
+</script>
+
+</body>
+</html>

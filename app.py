@@ -1,5 +1,6 @@
 import json
 import os
+import sqlite3
 import threading
 import time
 from datetime import datetime
@@ -28,6 +29,7 @@ cloud = tinytuya.Cloud(
 
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
+DB_FILE       = os.path.join(os.path.dirname(__file__), "history.db")
 
 # Per-AC state tracking for physical remote detection
 state = {
@@ -51,6 +53,50 @@ def load_settings():
 def save_settings(settings):
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=2)
+
+
+# --- History DB ---
+def init_db():
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS history (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                ts          INTEGER NOT NULL,
+                temp_schlaf REAL,
+                temp_gaeste REAL,
+                temp_wohn   REAL,
+                master_on   INTEGER,
+                master_mode TEXT,
+                master_fan  TEXT,
+                gaeste_on   INTEGER,
+                gaeste_mode TEXT,
+                gaeste_fan  TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_ts ON history(ts)")
+
+
+def log_status(schlaf_temp, gaeste_temp, wohn_temp, ac_master, ac_gaeste, settings):
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.execute("""
+                INSERT INTO history
+                    (ts, temp_schlaf, temp_gaeste, temp_wohn,
+                     master_on, master_mode, master_fan,
+                     gaeste_on, gaeste_mode, gaeste_fan)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                int(time.time()),
+                schlaf_temp, gaeste_temp, wohn_temp,
+                1 if ac_master.get("switch") else 0,
+                settings["master"].get("mode", "manual"),
+                ac_master.get("level", "low"),
+                1 if ac_gaeste.get("switch") else 0,
+                settings["gaeste"].get("mode", "manual"),
+                ac_gaeste.get("level", "low"),
+            ))
+    except Exception as e:
+        print(f"[DB Error] {e}")
 
 
 # --- AC Control ---
@@ -171,14 +217,21 @@ def automation_loop():
         try:
             settings = load_settings()
 
-            # Read sensors once per cycle
+            # Read all sensors once per cycle
             schlaf_data = switchbot.get_sensor_status(switchbot.SCHLAFZIMMER_ID)
             gaeste_data = switchbot.get_sensor_status(switchbot.GAESTEZIMMER_ID)
+            wohn_data   = switchbot.get_sensor_status(switchbot.WOHNZIMMER_ID)
             schlaf_temp = schlaf_data.get("temperature", 0)
             gaeste_temp = gaeste_data.get("temperature", 0)
+            wohn_temp   = wohn_data.get("temperature", 0)
 
             run_ac_automation("master", DEVICE_MASTER, schlaf_temp, settings)
             run_ac_automation("gaeste", DEVICE_GAESTE, gaeste_temp, settings)
+
+            # Log current state to history DB
+            ac_master = get_ac_status(DEVICE_MASTER)
+            ac_gaeste = get_ac_status(DEVICE_GAESTE)
+            log_status(schlaf_temp, gaeste_temp, wohn_temp, ac_master, ac_gaeste, settings)
 
         except Exception as e:
             print(f"[Automation Error] {e}")
@@ -193,6 +246,27 @@ app = Flask(__name__, static_folder='static')
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/history")
+def history():
+    return render_template("history.html")
+
+
+@app.route("/api/history")
+def api_history():
+    range_param = request.args.get("range", "24h")
+    step = {"6h": 1, "24h": 5, "7d": 30, "30d": 120}.get(range_param, 5)
+    since = int(time.time()) - {"6h": 21600, "24h": 86400, "7d": 604800, "30d": 2592000}.get(range_param, 86400)
+
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM history WHERE ts >= ? AND (ROWID % ?) = 0 ORDER BY ts ASC",
+            (since, step)
+        ).fetchall()
+
+    return jsonify([dict(r) for r in rows])
 
 
 @app.route("/api/status")
@@ -291,6 +365,7 @@ def startup_safe_state():
 
 
 if __name__ == "__main__":
+    init_db()
     startup_safe_state()
     t = threading.Thread(target=automation_loop, daemon=True)
     t.start()
