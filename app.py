@@ -7,7 +7,7 @@ from datetime import datetime
 
 import tinytuya
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for
 
 import switchbot
 
@@ -30,6 +30,7 @@ cloud = tinytuya.Cloud(
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 DB_FILE       = os.path.join(os.path.dirname(__file__), "history.db")
+USERS_FILE    = os.path.join(os.path.dirname(__file__), "users.json")
 
 # Per-AC state tracking for physical remote detection
 state = {
@@ -241,6 +242,49 @@ def automation_loop():
 
 # --- Flask App ---
 app = Flask(__name__, static_folder='static')
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback-dev-key")
+app.permanent_session_lifetime = 60 * 60 * 24 * 30  # 30 Tage
+
+
+def load_users():
+    with open(USERS_FILE) as f:
+        return json.load(f)
+
+
+def check_code(code):
+    for user in load_users():
+        if user.get("active") and user.get("code") == code:
+            return user["name"]
+    return None
+
+
+@app.before_request
+def require_login():
+    public = {"/login"}
+    if request.path not in public and not request.path.startswith("/static"):
+        if not session.get("user"):
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "unauthorized"}), 401
+            return redirect(url_for("login", next=request.path))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        name = check_code(request.form.get("code", "").strip())
+        if name:
+            session.permanent = True
+            session["user"] = name
+            return redirect(request.args.get("next") or "/")
+        error = "Falscher Code."
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 @app.route("/")
