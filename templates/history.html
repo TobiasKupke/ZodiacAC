@@ -239,7 +239,7 @@ function fanNum(on, level) { return on ? (FAN_VAL[level] || 1) : 0; }
 let chartTemp, chartMaster, chartGaeste;
 
 const gridColor  = 'rgba(255,255,255,0.06)';
-const tickColor  = getComputedStyle(root).getPropertyValue('--text-dim').trim();
+const tickColor  = getComputedStyle(root).getPropertyValue('--text-muted').trim();
 const fontFamily = "'Inter', sans-serif";
 
 function baseTimeAxis(unit) {
