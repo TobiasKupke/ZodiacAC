@@ -6,129 +6,118 @@
     <title>Regler-Parameter · Klimasteuerung</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg:#080d18;--bg-card:#0d1525;--bg-inner:#060b14;
-            --border:#1a2a45;--accent:#3e9bd4;--accent-hover:#5ab2e8;
-            --text:#f0f4ff;--text-muted:#7a9bbf;--text-dim:#3a5070;
-            --green:#4caf50;--red:#e05050;
-        }
+        :root{--bg:#080d18;--bg-card:#0d1525;--bg-inner:#060b14;--border:#1a2a45;--accent:#3e9bd4;--accent-hover:#5ab2e8;--text:#f0f4ff;--text-muted:#7a9bbf;--text-dim:#3a5070;--green:#4caf50;--red:#e05050;}
         *{box-sizing:border-box;margin:0;padding:0;}
         body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 20px 40px;}
-
         .top-bar{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto;padding:14px 0 8px;}
         .back-btn{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-inner);color:var(--text-muted);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color .2s,color .2s;font-family:inherit;}
         .back-btn:hover{border-color:var(--accent);color:var(--accent);}
         .page-title{font-size:1.1rem;font-weight:800;letter-spacing:-.02em;}
-
+        .lang-switcher{display:flex;gap:6px;align-items:center;}
+        .lang-btn{width:34px;height:26px;border-radius:5px;border:2px solid transparent;background:var(--bg-inner);cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:border-color .2s,transform .1s;line-height:1;}
+        .lang-btn:hover{transform:scale(1.1);}
+        .lang-btn.active{border-color:var(--accent);box-shadow:0 0 6px var(--accent);}
         .stripe{height:3px;background:linear-gradient(90deg,transparent,var(--accent),var(--text),var(--accent),transparent);border-radius:2px;max-width:900px;margin:0 auto 20px;}
-
         .grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
         .grid-full{max-width:900px;margin:0 auto 16px;display:grid;grid-template-columns:1fr;gap:16px;}
         .card{background:var(--bg-card);border-radius:20px;padding:22px;border:1px solid var(--border);}
         .card-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:18px;font-weight:600;}
-
         .field{margin-bottom:16px;}
         .field:last-child{margin-bottom:0;}
         .field label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:6px;}
         .field .desc{font-size:.72rem;color:var(--text-dim);margin-bottom:6px;}
         .field input[type=number]{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-inner);color:var(--text);font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s;}
         .field input[type=number]:focus{border-color:var(--accent);}
-
         .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
         .save-btn{width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;margin-top:4px;}
         .save-btn:hover{background:var(--accent-hover);}
         .save-btn:disabled{opacity:.5;cursor:default;}
-
         .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;padding:12px 24px;font-size:.85rem;font-weight:600;color:var(--accent);opacity:0;transition:opacity .3s;pointer-events:none;}
         .toast.show{opacity:1;}
-
         .hint{background:var(--bg-inner);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:16px;max-width:900px;margin-left:auto;margin-right:auto;}
         .hint b{color:var(--text);}
     </style>
     <script>
         const themes={belgrano:{'--bg':'#080d18','--bg-card':'#0d1525','--bg-inner':'#060b14','--border':'#1a2a45','--accent':'#3e9bd4','--accent-hover':'#5ab2e8','--text':'#f0f4ff','--text-muted':'#7a9bbf','--text-dim':'#3a5070'},nob:{'--bg':'#0f0f0f','--bg-card':'#1a1a1a','--bg-inner':'#111111','--border':'#2e2e2e','--accent':'#c8102e','--accent-hover':'#e0152e','--text':'#f5f5f5','--text-muted':'#999999','--text-dim':'#555555'},lotaro:{'--bg':'#132d28','--bg-card':'#1a3a33','--bg-inner':'#112824','--border':'#254d44','--accent':'#e8d96a','--accent-hover':'#f0e580','--text':'#f0ede4','--text-muted':'#8aada6','--text-dim':'#4d7a70'},rg:{'--bg':'#0c1f10','--bg-card':'#122918','--bg-inner':'#09180d','--border':'#1e3d26','--accent':'#c8562a','--accent-hover':'#e06030','--text':'#f5f0e8','--text-muted':'#8aaa8e','--text-dim':'#3a5e40'},boca:{'--bg':'#00143c','--bg-card':'#001f58','--bg-inner':'#000f2c','--border':'#002b7a','--accent':'#f5d000','--accent-hover':'#fce030','--text':'#ffffff','--text-muted':'#a0b8e8','--text-dim':'#3a5490'}};
-        const t=themes[localStorage.getItem('theme')]||themes.belgrano;
-        Object.entries(t).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
+        const tv=themes[localStorage.getItem('theme')]||themes.belgrano;
+        Object.entries(tv).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
     </script>
 </head>
 <body>
 
 <div class="top-bar">
-    <a href="/" class="back-btn">← Steuerung</a>
-    <div class="page-title">Regler-Parameter</div>
-    <a href="/history" class="back-btn">📈 Verlauf</a>
+    <a href="/" class="back-btn" id="backBtn">← Steuerung</a>
+    <div class="page-title" id="pageTitle">Regler-Parameter</div>
+    <div class="lang-switcher">
+        <button class="lang-btn" id="lang-de" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English">🇬🇧</button>
+        <button class="lang-btn" id="lang-es" onclick="setLang('es')" title="Español">🇦🇷</button>
+    </div>
 </div>
 <div class="stripe"></div>
 
-<div class="hint">
-    <b>Lüfterwechsel-Stufen:</b> Der Regelwert = Kp × Temperaturdifferenz + Ki × Integral.
-    Liegt dieser Wert über der Stufe-Hochschalten-Schwelle, wechselt der Lüfter hoch — liegt er darunter, wechselt er runter.
-    Änderungen werden sofort wirksam (PI-Integral wird zurückgesetzt).
-</div>
+<div class="hint" id="hintBox"></div>
 
-<div class="grid-full" id="fanCard">
+<div class="grid-full">
 <div class="card">
-    <div class="card-title">Lüfterwechsel-Stufen &amp; Hysterese</div>
+    <div class="card-title" id="titleFan"></div>
     <div class="row2">
         <div class="field">
-            <label>Hochschalten: Stufe 1 → 2</label>
-            <div class="desc">Regelwert ab dem auf Middle gewechselt wird</div>
+            <label id="lbl_up0"></label>
+            <div class="desc" id="desc_up0"></div>
             <input type="number" id="fan_up_0" step="0.1" min="0.1" max="5">
         </div>
         <div class="field">
-            <label>Runterschalten: Stufe 2 → 1</label>
-            <div class="desc">Regelwert unter dem auf Low gewechselt wird</div>
+            <label id="lbl_down0"></label>
+            <div class="desc" id="desc_down0"></div>
             <input type="number" id="fan_down_0" step="0.1" min="0.1" max="5">
         </div>
     </div>
     <div class="row2" style="margin-top:12px;">
         <div class="field">
-            <label>Hochschalten: Stufe 2 → 3</label>
-            <div class="desc">Regelwert ab dem auf High gewechselt wird</div>
+            <label id="lbl_up1"></label>
+            <div class="desc" id="desc_up1"></div>
             <input type="number" id="fan_up_1" step="0.1" min="0.1" max="5">
         </div>
         <div class="field">
-            <label>Runterschalten: Stufe 3 → 2</label>
-            <div class="desc">Regelwert unter dem auf Middle zurückgekehrt wird</div>
+            <label id="lbl_down1"></label>
+            <div class="desc" id="desc_down1"></div>
             <input type="number" id="fan_down_1" step="0.1" min="0.1" max="5">
         </div>
     </div>
     <div class="field" style="margin-top:12px;">
-        <label>Anti-Windup (max. Integral-Betrag)</label>
-        <div class="desc">Verhindert, dass das Integral unbegrenzt wächst</div>
+        <label id="lbl_aw"></label>
+        <div class="desc" id="desc_aw"></div>
         <input type="number" id="anti_windup" step="0.5" min="1" max="100">
     </div>
 </div>
 </div>
 
 <div class="grid">
-    <!-- Schlafzimmer -->
     <div class="card">
-        <div class="card-title">PI-Regler · Schlafzimmer</div>
+        <div class="card-title" id="titleSchlaf"></div>
         <div class="field">
-            <label>Kp — Proportional-Anteil</label>
-            <div class="desc">Direkte Reaktion auf Temperaturdifferenz</div>
+            <label id="lbl_mkp"></label>
+            <div class="desc" id="desc_kp"></div>
             <input type="number" id="master_kp" step="0.05" min="0.1" max="5">
         </div>
         <div class="field">
-            <label>Ki — Integral-Anteil</label>
-            <div class="desc">Summiert Fehler über Zeit — verhindert Dauerpendeln</div>
+            <label id="lbl_mki"></label>
+            <div class="desc" id="desc_ki"></div>
             <input type="number" id="master_ki" step="0.005" min="0" max="1">
         </div>
     </div>
 
-    <!-- Gästezimmer -->
     <div class="card">
-        <div class="card-title">PI-Regler · Gästezimmer</div>
+        <div class="card-title" id="titleGaeste"></div>
         <div class="field">
-            <label>Kp — Proportional-Anteil</label>
-            <div class="desc">Direkte Reaktion auf Temperaturdifferenz</div>
+            <label id="lbl_gkp"></label>
+            <div class="desc" id="desc_gkp"></div>
             <input type="number" id="gaeste_kp" step="0.05" min="0.1" max="5">
         </div>
         <div class="field">
-            <label>Ki — Integral-Anteil</label>
-            <div class="desc">Summiert Fehler über Zeit — verhindert Dauerpendeln</div>
+            <label id="lbl_gki"></label>
+            <div class="desc" id="desc_gki"></div>
             <input type="number" id="gaeste_ki" step="0.005" min="0" max="1">
         </div>
     </div>
@@ -138,9 +127,95 @@
     <button class="save-btn" id="saveBtn" onclick="save()">Speichern &amp; anwenden</button>
 </div>
 
-<div class="toast" id="toast">✓ Gespeichert</div>
+<div class="toast" id="toast"></div>
 
 <script>
+// ── Translations ─────────────────────────────────────────────
+const tr = {
+    de: {
+        back:'← Steuerung', page_title:'Regler-Parameter',
+        hint:'<b>Lüfterwechsel-Stufen:</b> Der Regelwert = Kp × Temperaturdifferenz + Ki × Integral. Liegt dieser Wert über der Stufe-Hochschalten-Schwelle, wechselt der Lüfter hoch — liegt er darunter, wechselt er runter. Änderungen werden sofort wirksam (PI-Integral wird zurückgesetzt).',
+        fan_section:'Lüfterwechsel-Stufen & Hysterese',
+        up0_label:'Hochschalten: Stufe 1 → 2', up0_desc:'Regelwert ab dem auf Middle gewechselt wird',
+        down0_label:'Runterschalten: Stufe 2 → 1', down0_desc:'Regelwert unter dem auf Low gewechselt wird',
+        up1_label:'Hochschalten: Stufe 2 → 3', up1_desc:'Regelwert ab dem auf High gewechselt wird',
+        down1_label:'Runterschalten: Stufe 3 → 2', down1_desc:'Regelwert unter dem auf Middle zurückgekehrt wird',
+        aw_label:'Anti-Windup (max. Integral-Betrag)', aw_desc:'Verhindert, dass das Integral unbegrenzt wächst',
+        pi_schlaf:'PI-Regler · Schlafzimmer', pi_gaeste:'PI-Regler · Gästezimmer',
+        kp_label:'Kp — Proportional-Anteil', kp_desc:'Direkte Reaktion auf Temperaturdifferenz',
+        ki_label:'Ki — Integral-Anteil', ki_desc:'Summiert Fehler über Zeit — verhindert Dauerpendeln',
+        save:'Speichern & anwenden', saved:'✓ Gespeichert',
+    },
+    en: {
+        back:'← Control', page_title:'Controller Parameters',
+        hint:'<b>Fan Level Thresholds:</b> Control value = Kp × temperature difference + Ki × integral. When this exceeds the step-up threshold, the fan increases — when it falls below step-down, it decreases. Changes take effect immediately (PI integral is reset).',
+        fan_section:'Fan Level Thresholds & Hysteresis',
+        up0_label:'Step up: Level 1 → 2', up0_desc:'Control value above which fan switches to Medium',
+        down0_label:'Step down: Level 2 → 1', down0_desc:'Control value below which fan switches to Low',
+        up1_label:'Step up: Level 2 → 3', up1_desc:'Control value above which fan switches to High',
+        down1_label:'Step down: Level 3 → 2', down1_desc:'Control value below which fan returns to Medium',
+        aw_label:'Anti-Windup (max. integral magnitude)', aw_desc:'Prevents the integral from growing indefinitely',
+        pi_schlaf:'PI Controller · Bedroom', pi_gaeste:'PI Controller · Guest Room',
+        kp_label:'Kp — Proportional term', kp_desc:'Direct response to current temperature difference',
+        ki_label:'Ki — Integral term', ki_desc:'Accumulates error over time — prevents sustained oscillation',
+        save:'Save & apply', saved:'✓ Saved',
+    },
+    es: {
+        back:'← Control', page_title:'Parámetros del regulador',
+        hint:'<b>Umbrales de velocidad del ventilador:</b> Valor de control = Kp × diferencia de temperatura + Ki × integral. Si supera el umbral de subida, el ventilador sube — si cae por debajo del de bajada, baja. Los cambios se aplican de inmediato (el integral PI se reinicia).',
+        fan_section:'Umbrales de velocidad & Histéresis',
+        up0_label:'Subir: Nivel 1 → 2', up0_desc:'Valor de control por encima del cual se pasa a Medio',
+        down0_label:'Bajar: Nivel 2 → 1', down0_desc:'Valor de control por debajo del cual se pasa a Bajo',
+        up1_label:'Subir: Nivel 2 → 3', up1_desc:'Valor de control por encima del cual se pasa a Alto',
+        down1_label:'Bajar: Nivel 3 → 2', down1_desc:'Valor de control por debajo del cual se vuelve a Medio',
+        aw_label:'Anti-Windup (magnitud máx. del integral)', aw_desc:'Evita que el integral crezca indefinidamente',
+        pi_schlaf:'Regulador PI · Dormitorio', pi_gaeste:'Regulador PI · Habitación huéspedes',
+        kp_label:'Kp — Término proporcional', kp_desc:'Respuesta directa a la diferencia de temperatura actual',
+        ki_label:'Ki — Término integral', ki_desc:'Acumula el error en el tiempo — evita oscilaciones persistentes',
+        save:'Guardar y aplicar', saved:'✓ Guardado',
+    }
+};
+
+let currentLang = localStorage.getItem('lang') || 'de';
+
+function applyLang() {
+    const l = tr[currentLang] || tr.de;
+    document.getElementById('backBtn').textContent     = l.back;
+    document.getElementById('pageTitle').textContent   = l.page_title;
+    document.getElementById('hintBox').innerHTML       = l.hint;
+    document.getElementById('titleFan').textContent    = l.fan_section;
+    document.getElementById('lbl_up0').textContent     = l.up0_label;
+    document.getElementById('desc_up0').textContent    = l.up0_desc;
+    document.getElementById('lbl_down0').textContent   = l.down0_label;
+    document.getElementById('desc_down0').textContent  = l.down0_desc;
+    document.getElementById('lbl_up1').textContent     = l.up1_label;
+    document.getElementById('desc_up1').textContent    = l.up1_desc;
+    document.getElementById('lbl_down1').textContent   = l.down1_label;
+    document.getElementById('desc_down1').textContent  = l.down1_desc;
+    document.getElementById('lbl_aw').textContent      = l.aw_label;
+    document.getElementById('desc_aw').textContent     = l.aw_desc;
+    document.getElementById('titleSchlaf').textContent = l.pi_schlaf;
+    document.getElementById('titleGaeste').textContent = l.pi_gaeste;
+    document.getElementById('lbl_mkp').textContent     = l.kp_label;
+    document.getElementById('desc_kp').textContent     = l.kp_desc;
+    document.getElementById('lbl_mki').textContent     = l.ki_label;
+    document.getElementById('desc_ki').textContent     = l.ki_desc;
+    document.getElementById('lbl_gkp').textContent     = l.kp_label;
+    document.getElementById('desc_gkp').textContent    = l.kp_desc;
+    document.getElementById('lbl_gki').textContent     = l.ki_label;
+    document.getElementById('desc_gki').textContent    = l.ki_desc;
+    document.getElementById('saveBtn').textContent     = l.save;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('lang-' + currentLang).classList.add('active');
+}
+
+function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    applyLang();
+}
+
+// ── Data load / save ─────────────────────────────────────────
 async function load() {
     const d = await fetch('/api/tuning').then(r => r.json());
     document.getElementById('fan_up_0').value    = d.fan_up[0];
@@ -158,10 +233,10 @@ async function save() {
     const btn = document.getElementById('saveBtn');
     btn.disabled = true;
     await fetch('/api/tuning', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            fan_up:      [+document.getElementById('fan_up_0').value, +document.getElementById('fan_up_1').value],
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            fan_up:      [+document.getElementById('fan_up_0').value,   +document.getElementById('fan_up_1').value],
             fan_down:    [+document.getElementById('fan_down_0').value, +document.getElementById('fan_down_1').value],
             anti_windup: +document.getElementById('anti_windup').value,
             master_kp:   +document.getElementById('master_kp').value,
@@ -172,10 +247,12 @@ async function save() {
     });
     btn.disabled = false;
     const toast = document.getElementById('toast');
+    toast.textContent = (tr[currentLang] || tr.de).saved;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
+applyLang();
 load();
 </script>
 </body>
