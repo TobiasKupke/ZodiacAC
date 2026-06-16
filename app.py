@@ -32,11 +32,18 @@ SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 DB_FILE       = os.path.join(os.path.dirname(__file__), "history.db")
 USERS_FILE    = os.path.join(os.path.dirname(__file__), "users.json")
 
-# Per-AC state tracking for physical remote detection
+# Per-AC state tracking (remote detection + PI controller)
 state = {
-    "master": {"expected_switch": None, "expected_level": None, "expected_temp": None},
-    "gaeste": {"expected_switch": None, "expected_level": None, "expected_temp": None},
+    "master": {"expected_switch": None, "expected_level": None, "expected_temp": None,
+               "integral": 0.0, "current_fan": 0},
+    "gaeste": {"expected_switch": None, "expected_level": None, "expected_temp": None,
+               "integral": 0.0, "current_fan": 0},
 }
+
+# PI fan speed control constants
+ANTI_WINDUP  = 15.0  # integral clamp
+FAN_UP       = [1.2, 2.2]   # control thresholds to step UP   (1→2, 2→3)
+FAN_DOWN_THR = 0.8           # control threshold to step DOWN  (one level at a time)
 
 
 def load_settings():
@@ -134,12 +141,18 @@ def ac_set_fan_speed(ac_key, device_id, speed):
     state[ac_key]["expected_level"] = LEVEL_MAP[speed]
 
 
-def fan_speed_for_diff(diff):
-    if diff < 1.0:
+def pi_fan_level(control, current_fan):
+    """Apply hysteresis: step up at FAN_UP thresholds, step down at FAN_DOWN_THR."""
+    if current_fan <= 1:
+        if control >= FAN_UP[0]: return 2
         return 1
-    elif diff < 2.0:
+    elif current_fan == 2:
+        if control >= FAN_UP[1]: return 3
+        if control < FAN_DOWN_THR: return 1
         return 2
-    return 3
+    else:  # 3
+        if control < FAN_DOWN_THR: return 2
+        return 3
 
 
 # --- Time Window ---
@@ -192,21 +205,44 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     if sensor_temp == 0:
         return
 
-    target  = ac_settings.get("target_temp", 22)
-    hyst    = settings.get("hysteresis", 0.2)
+    target = ac_settings.get("target_temp", 22)
+    hyst   = settings.get("hysteresis", 0.2)
+    kp     = ac_settings.get("kp", 1.0)
+    ki     = ac_settings.get("ki", 0.0)
     if ac is None:
         ac = get_ac_status(device_id)
-    ac_on   = ac.get("switch", False)
-    diff    = sensor_temp - target
+    ac_on = ac.get("switch", False)
+    diff  = sensor_temp - target
 
     if not ac_on and diff > hyst:
+        # Turn on: reset integral, calculate initial fan without hysteresis
+        st["integral"]    = 0.0
+        st["current_fan"] = 0
+        control = kp * diff
+        new_fan = pi_fan_level(control, 0)
         ac_turn_on(ac_key, device_id)
-        ac_set_fan_speed(ac_key, device_id, fan_speed_for_diff(diff))
+        ac_set_fan_speed(ac_key, device_id, new_fan)
         ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
+        st["current_fan"] = new_fan
+
     elif ac_on and diff < -hyst:
+        # Turn off: reset PI state
+        st["integral"]    = 0.0
+        st["current_fan"] = 0
         ac_turn_off(ac_key, device_id)
+
     elif ac_on:
-        ac_set_fan_speed(ac_key, device_id, fan_speed_for_diff(abs(diff)))
+        # PI: accumulate integral, calculate control signal
+        st["integral"] = max(-ANTI_WINDUP, min(ANTI_WINDUP, st["integral"] + diff))
+        control = kp * diff + ki * st["integral"]
+        new_fan = pi_fan_level(control, st["current_fan"])
+
+        if new_fan != st["current_fan"]:
+            print(f"[{ac_key}] Lüfter {st['current_fan']}→{new_fan} "
+                  f"(diff={diff:+.2f}, I={st['integral']:.1f}, ctrl={control:.2f})")
+            ac_set_fan_speed(ac_key, device_id, new_fan)
+            st["current_fan"] = new_fan
+
         # Ensure AC target stays at 20°C
         if ac.get("temp_set") != AC_TARGET_TEMP:
             ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
@@ -369,6 +405,9 @@ def api_set_mode(ac_key):
         st["expected_switch"] = ac.get("switch", False)
         st["expected_level"]  = ac.get("level", "low")
         st["expected_temp"]   = AC_TARGET_TEMP
+        # Reset PI state on mode switch
+        st["integral"]    = 0.0
+        st["current_fan"] = 0
         ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
 
     return jsonify({"success": True, "mode": mode})
