@@ -184,6 +184,17 @@
         <button class="theme-btn" id="theme-boca" onclick="setTheme('boca')" title="Club Atlético Boca Juniors">
             <img src="/static/boca_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Boca Juniors">
         </button>
+        <!-- Timberland -->
+        <button class="theme-btn" id="theme-timberland" onclick="setTheme('timberland')" title="Timberland · Est. 1973">
+            <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="36" rx="5" fill="#1c1005"/>
+                <circle cx="18" cy="16" r="9" fill="#D4A030"/>
+                <circle cx="11" cy="21" r="7" fill="#D4A030"/>
+                <circle cx="25" cy="21" r="7" fill="#D4A030"/>
+                <circle cx="18" cy="9"  r="6" fill="#D4A030"/>
+                <rect x="16" y="27" width="4" height="8" rx="1" fill="#D4A030"/>
+            </svg>
+        </button>
     </div>
 
     <div class="lang-switcher">
@@ -449,6 +460,24 @@ const themes = {
         },
         stripe: 'linear-gradient(90deg,#00143c 0%,#f5d000 35%,#ffffff 50%,#f5d000 65%,#00143c 100%)',
         logo: `<img src="/static/boca_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Boca Juniors">`
+    },
+    timberland: {
+        club: 'Timberland · Est. 1973',
+        vars: {
+            '--bg':'#100804','--bg-card':'#1c1008','--bg-inner':'#0d0603',
+            '--border':'#3a2010','--accent':'#d4a030','--accent-hover':'#e8b840',
+            '--text':'#f5ede0','--text-muted':'#a07840','--text-dim':'#5a3818',
+            '--green':'#78b440','--red':'#c84020'
+        },
+        stripe: 'linear-gradient(90deg,#100804 0%,#d4a030 35%,#f5ede0 50%,#d4a030 65%,#100804 100%)',
+        logo: `<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <rect width="64" height="64" rx="10" fill="#1c1005"/>
+            <circle cx="32" cy="26" r="15" fill="#d4a030"/>
+            <circle cx="19" cy="33" r="10" fill="#d4a030"/>
+            <circle cx="45" cy="33" r="10" fill="#d4a030"/>
+            <circle cx="32" cy="13" r="11" fill="#d4a030"/>
+            <rect x="28" y="44" width="8" height="16" rx="2" fill="#d4a030"/>
+        </svg>`
     }
 };
 
