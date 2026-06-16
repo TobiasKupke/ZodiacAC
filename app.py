@@ -40,10 +40,12 @@ state = {
                "integral": 0.0, "current_fan": 0},
 }
 
-# PI fan speed control constants
-ANTI_WINDUP  = 15.0  # integral clamp
-FAN_UP       = [1.2, 2.2]   # control thresholds to step UP   (1→2, 2→3)
-FAN_DOWN_THR = 0.8           # control threshold to step DOWN  (one level at a time)
+# PI fan speed control defaults (overridable via settings.json)
+PI_DEFAULTS = {
+    "fan_up":      [1.2, 2.2],   # control thresholds to step UP   (1→2, 2→3)
+    "fan_down":    [0.8, 1.8],   # control thresholds to step DOWN  (2→1, 3→2)
+    "anti_windup": 15.0,
+}
 
 
 def load_settings():
@@ -141,17 +143,17 @@ def ac_set_fan_speed(ac_key, device_id, speed):
     state[ac_key]["expected_level"] = LEVEL_MAP[speed]
 
 
-def pi_fan_level(control, current_fan):
-    """Apply hysteresis: step up at FAN_UP thresholds, step down at FAN_DOWN_THR."""
+def pi_fan_level(control, current_fan, fan_up, fan_down):
+    """Apply hysteresis: step up at fan_up thresholds, step down at fan_down thresholds."""
     if current_fan <= 1:
-        if control >= FAN_UP[0]: return 2
+        if control >= fan_up[0]: return 2
         return 1
     elif current_fan == 2:
-        if control >= FAN_UP[1]: return 3
-        if control < FAN_DOWN_THR: return 1
+        if control >= fan_up[1]: return 3
+        if control < fan_down[0]: return 1
         return 2
     else:  # 3
-        if control < FAN_DOWN_THR: return 2
+        if control < fan_down[1]: return 2
         return 3
 
 
@@ -205,10 +207,13 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     if sensor_temp == 0:
         return
 
-    target = ac_settings.get("target_temp", 22)
-    hyst   = settings.get("hysteresis", 0.2)
-    kp     = ac_settings.get("kp", 1.0)
-    ki     = ac_settings.get("ki", 0.0)
+    target      = ac_settings.get("target_temp", 22)
+    hyst        = settings.get("hysteresis", 0.2)
+    kp          = ac_settings.get("kp", 1.0)
+    ki          = ac_settings.get("ki", 0.0)
+    fan_up      = settings.get("fan_up",      PI_DEFAULTS["fan_up"])
+    fan_down    = settings.get("fan_down",    PI_DEFAULTS["fan_down"])
+    anti_windup = settings.get("anti_windup", PI_DEFAULTS["anti_windup"])
     if ac is None:
         ac = get_ac_status(device_id)
     ac_on = ac.get("switch", False)
@@ -219,7 +224,7 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
         st["integral"]    = 0.0
         st["current_fan"] = 0
         control = kp * diff
-        new_fan = pi_fan_level(control, 0)
+        new_fan = pi_fan_level(control, 0, fan_up, fan_down)
         ac_turn_on(ac_key, device_id)
         ac_set_fan_speed(ac_key, device_id, new_fan)
         ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
@@ -233,9 +238,9 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
 
     elif ac_on:
         # PI: accumulate integral, calculate control signal
-        st["integral"] = max(-ANTI_WINDUP, min(ANTI_WINDUP, st["integral"] + diff))
+        st["integral"] = max(-anti_windup, min(anti_windup, st["integral"] + diff))
         control = kp * diff + ki * st["integral"]
-        new_fan = pi_fan_level(control, st["current_fan"])
+        new_fan = pi_fan_level(control, st["current_fan"], fan_up, fan_down)
 
         if new_fan != st["current_fan"]:
             print(f"[{ac_key}] Lüfter {st['current_fan']}→{new_fan} "
@@ -331,6 +336,44 @@ def index():
 @app.route("/history")
 def history():
     return render_template("history.html")
+
+
+@app.route("/tuning")
+def tuning():
+    return render_template("tuning.html")
+
+
+@app.route("/api/tuning", methods=["GET"])
+def api_get_tuning():
+    s = load_settings()
+    return jsonify({
+        "fan_up":      s.get("fan_up",      PI_DEFAULTS["fan_up"]),
+        "fan_down":    s.get("fan_down",    PI_DEFAULTS["fan_down"]),
+        "anti_windup": s.get("anti_windup", PI_DEFAULTS["anti_windup"]),
+        "master_kp":   s["master"].get("kp", 1.0),
+        "master_ki":   s["master"].get("ki", 0.01),
+        "gaeste_kp":   s["gaeste"].get("kp", 1.0),
+        "gaeste_ki":   s["gaeste"].get("ki", 0.02),
+    })
+
+
+@app.route("/api/tuning", methods=["POST"])
+def api_post_tuning():
+    body = request.json
+    s = load_settings()
+    s["fan_up"]      = body["fan_up"]
+    s["fan_down"]    = body["fan_down"]
+    s["anti_windup"] = body["anti_windup"]
+    s["master"]["kp"] = body["master_kp"]
+    s["master"]["ki"] = body["master_ki"]
+    s["gaeste"]["kp"] = body["gaeste_kp"]
+    s["gaeste"]["ki"] = body["gaeste_ki"]
+    save_settings(s)
+    # Reset PI state on all ACs so new values take effect immediately
+    for key in state:
+        state[key]["integral"]    = 0.0
+        state[key]["current_fan"] = 0
+    return jsonify({"success": True})
 
 
 @app.route("/api/history")
