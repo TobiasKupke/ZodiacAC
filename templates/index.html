@@ -330,7 +330,7 @@
 
 <div class="footer">
     <span data-i18n="aktualisiert">Zuletzt aktualisiert</span>: <span id="last-updated">—</span>
-    &nbsp;·&nbsp; <span data-i18n="interval">Aktualisierung alle 15 Sek.</span>
+    &nbsp;·&nbsp; <span data-i18n="interval">Aktualisierung alle 60 Sek.</span>
     &nbsp;·&nbsp; <a href="/history" style="color:var(--accent);text-decoration:none;font-weight:600;" data-i18n="verlauf">📈 Verlauf</a>
     &nbsp;·&nbsp; <a href="/tuning" style="color:var(--accent);text-decoration:none;font-weight:600;">⚙ Parameter</a>
 </div>
@@ -351,7 +351,7 @@ const translations = {
         status: 'Status', ist_temp: 'Ist-Temp', ziel_temp: 'Ziel-Temp AC', luefter: 'Lüfter',
         an: 'AN', aus: 'AUS',
         auto_hint: 'Im Automatikmodus nicht verfügbar', manual_hint: 'Manueller Override aktiv',
-        aktualisiert: 'Zuletzt aktualisiert', interval: 'Aktualisierung alle 15 Sek.', verlauf: '📈 Verlauf',
+        aktualisiert: 'Zuletzt aktualisiert', interval: 'Aktualisierung alle 60 Sek.', verlauf: '📈 Verlauf',
         level_low: 'Niedrig (1)', level_mid: 'Mittel (2)', level_high: 'Hoch (3)', level_auto: 'Auto',
         status_on: 'EIN', status_off: 'AUS',
     },
@@ -366,7 +366,7 @@ const translations = {
         status: 'Status', ist_temp: 'Current Temp', ziel_temp: 'Target Temp AC', luefter: 'Fan',
         an: 'ON', aus: 'OFF',
         auto_hint: 'Not available in automatic mode', manual_hint: 'Manual override active',
-        aktualisiert: 'Last updated', interval: 'Updates every 15 sec.', verlauf: '📈 History',
+        aktualisiert: 'Last updated', interval: 'Updates every 60 sec.', verlauf: '📈 History',
         level_low: 'Low (1)', level_mid: 'Medium (2)', level_high: 'High (3)', level_auto: 'Auto',
         status_on: 'ON', status_off: 'OFF',
     },
@@ -381,7 +381,7 @@ const translations = {
         status: 'Estado', ist_temp: 'Temp Actual', ziel_temp: 'Temp Objetivo AC', luefter: 'Ventilador',
         an: 'ON', aus: 'OFF',
         auto_hint: 'No disponible en modo automático', manual_hint: 'Override manual activo',
-        aktualisiert: 'Última actualización', interval: 'Actualización cada 15 seg.', verlauf: '📈 Historial',
+        aktualisiert: 'Última actualización', interval: 'Actualización cada 60 seg.', verlauf: '📈 Historial',
         level_low: 'Bajo (1)', level_mid: 'Medio (2)', level_high: 'Alto (3)', level_auto: 'Auto',
         status_on: 'ON', status_off: 'OFF',
     }
@@ -639,7 +639,12 @@ setTheme(currentTheme);
 setLang(currentLang);
 loadSettings();
 loadStatus();
-setInterval(loadStatus, 15000);
+// Poll every 60s, synced to the full minute
+const msUntilNextMinute = (60 - new Date().getSeconds()) * 1000;
+setTimeout(() => {
+    loadStatus();
+    setInterval(loadStatus, 60000);
+}, msUntilNextMinute);
 </script>
 </body>
 </html>

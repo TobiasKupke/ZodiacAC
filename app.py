@@ -40,6 +40,13 @@ state = {
                "integral": 0.0, "current_fan": 0},
 }
 
+# Cached status — updated once per automation cycle, served to the frontend
+cache = {
+    "ac_master": {},
+    "ac_gaeste": {},
+    "sensors": {},
+}
+
 # PI fan speed control defaults (overridable via settings.json)
 PI_DEFAULTS = {
     "fan_up":      [1.2, 2.2],   # control thresholds to step UP   (1→2, 2→3)
@@ -171,7 +178,11 @@ def is_in_time_window(time_from_str, time_to_str):
 # --- Single AC automation step ---
 def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     ac_settings = settings.get(ac_key, {})
+    cache_key = f"ac_{ac_key}"
+
     if ac_settings.get("mode") != "auto":
+        ac = get_ac_status(device_id)
+        cache[cache_key] = ac
         return
 
     st = state[ac_key]
@@ -190,6 +201,7 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
             settings[ac_key]["mode"] = "manual"
             save_settings(settings)
             st["expected_switch"] = st["expected_level"] = st["expected_temp"] = None
+            cache[cache_key] = ac
             return
 
     # Outside time window: make sure AC is off
@@ -202,6 +214,8 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
                 ac_turn_off(ac_key, device_id)
                 st["expected_level"] = None
                 st["expected_temp"]  = None
+        if ac is not None:
+            cache[cache_key] = ac
         return
 
     if sensor_temp == 0:
@@ -252,6 +266,8 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
         if ac.get("temp_set") != AC_TARGET_TEMP:
             ac_set_temperature(ac_key, device_id, AC_TARGET_TEMP)
 
+    cache[cache_key] = ac
+
 
 # --- Automation Loop ---
 def automation_loop():
@@ -259,21 +275,19 @@ def automation_loop():
         try:
             settings = load_settings()
 
-            # Read all sensors once per cycle
-            schlaf_data = switchbot.get_sensor_status(switchbot.SCHLAFZIMMER_ID)
-            gaeste_data = switchbot.get_sensor_status(switchbot.GAESTEZIMMER_ID)
-            wohn_data   = switchbot.get_sensor_status(switchbot.WOHNZIMMER_ID)
-            schlaf_temp = schlaf_data.get("temperature", 0)
-            gaeste_temp = gaeste_data.get("temperature", 0)
-            wohn_temp   = wohn_data.get("temperature", 0)
+            # Read all sensors once per cycle and cache them
+            sensors = switchbot.get_all_sensors()
+            cache["sensors"] = sensors
+            schlaf_temp = sensors["schlafzimmer"]["temperature"]
+            gaeste_temp = sensors["gaestezimmer"]["temperature"]
+            wohn_temp   = sensors["wohnzimmer"]["temperature"]
 
             run_ac_automation("master", DEVICE_MASTER, schlaf_temp, settings)
             run_ac_automation("gaeste", DEVICE_GAESTE, gaeste_temp, settings)
 
-            # Log current state to history DB
-            ac_master = get_ac_status(DEVICE_MASTER)
-            ac_gaeste = get_ac_status(DEVICE_GAESTE)
-            log_status(schlaf_temp, gaeste_temp, wohn_temp, ac_master, ac_gaeste, settings)
+            # Log from cache — no extra Tuya API calls
+            log_status(schlaf_temp, gaeste_temp, wohn_temp,
+                       cache["ac_master"], cache["ac_gaeste"], settings)
 
         except Exception as e:
             print(f"[Automation Error] {e}")
@@ -394,10 +408,7 @@ def api_history():
 
 @app.route("/api/status")
 def api_status():
-    sensors  = switchbot.get_all_sensors()
-    ac_master = get_ac_status(DEVICE_MASTER)
-    ac_gaeste = get_ac_status(DEVICE_GAESTE)
-    settings  = load_settings()
+    settings = load_settings()
 
     def fmt_ac(ac):
         return {
@@ -409,9 +420,9 @@ def api_status():
         }
 
     return jsonify({
-        "sensors":       sensors,
-        "ac_master":     fmt_ac(ac_master),
-        "ac_gaeste":     fmt_ac(ac_gaeste),
+        "sensors":       cache.get("sensors", {}),
+        "ac_master":     fmt_ac(cache.get("ac_master", {})),
+        "ac_gaeste":     fmt_ac(cache.get("ac_gaeste", {})),
         "mode_master":   settings["master"].get("mode", "auto"),
         "mode_gaeste":   settings["gaeste"].get("mode", "auto"),
     })
