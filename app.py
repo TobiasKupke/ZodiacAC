@@ -181,8 +181,6 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     cache_key = f"ac_{ac_key}"
 
     if ac_settings.get("mode") != "auto":
-        ac = get_ac_status(device_id)
-        cache[cache_key] = ac
         return
 
     st = state[ac_key]
