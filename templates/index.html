@@ -147,6 +147,11 @@
         .btn-on:hover  { opacity: 0.85; }
         .btn-off:hover { border-color: var(--red); color: var(--red); }
         .btn-on:disabled, .btn-off:disabled { opacity: 0.25; cursor: not-allowed; }
+        .fan-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+        .fan-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+        .fan-btn { width: 40px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-inner); color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .fan-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .fan-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
         .override-hint { font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-top: 8px; }
 
         .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
@@ -304,6 +309,12 @@
             <button class="btn-on" id="btn-on-master" onclick="acControl('master','on')" disabled data-i18n="an">AN</button>
             <button class="btn-off" id="btn-off-master" onclick="acControl('master','off')" disabled data-i18n="aus">AUS</button>
         </div>
+        <div class="fan-row" id="fan-row-master" style="display:none;">
+            <span class="fan-label" data-i18n="luefter">Lüfter</span>
+            <button class="fan-btn" id="fan-1-master" onclick="setFan('master',1)">1</button>
+            <button class="fan-btn" id="fan-2-master" onclick="setFan('master',2)">2</button>
+            <button class="fan-btn" id="fan-3-master" onclick="setFan('master',3)">3</button>
+        </div>
         <div class="override-hint" id="hint-master" data-i18n="auto_hint">Im Automatikmodus nicht verfügbar</div>
 
         <hr class="divider" style="margin-top:16px">
@@ -322,6 +333,12 @@
         <div class="override-row">
             <button class="btn-on" id="btn-on-gaeste" onclick="acControl('gaeste','on')" disabled data-i18n="an">AN</button>
             <button class="btn-off" id="btn-off-gaeste" onclick="acControl('gaeste','off')" disabled data-i18n="aus">AUS</button>
+        </div>
+        <div class="fan-row" id="fan-row-gaeste" style="display:none;">
+            <span class="fan-label" data-i18n="luefter">Lüfter</span>
+            <button class="fan-btn" id="fan-1-gaeste" onclick="setFan('gaeste',1)">1</button>
+            <button class="fan-btn" id="fan-2-gaeste" onclick="setFan('gaeste',2)">2</button>
+            <button class="fan-btn" id="fan-3-gaeste" onclick="setFan('gaeste',3)">3</button>
         </div>
         <div class="override-hint" id="hint-gaeste" data-i18n="auto_hint">Im Automatikmodus nicht verfügbar</div>
     </div>
@@ -544,6 +561,7 @@ function updateModeUI(ac, mode) {
     const isManual = mode === 'manual';
     document.getElementById(`btn-on-${ac}`).disabled  = !isManual;
     document.getElementById(`btn-off-${ac}`).disabled = !isManual;
+    document.getElementById(`fan-row-${ac}`).style.display = isManual ? 'flex' : 'none';
     document.getElementById(`hint-${ac}`).textContent = isManual ? t('manual_hint') : t('auto_hint');
     // Re-apply i18n for buttons
     document.getElementById(`btn-auto-${ac}`).textContent   = t('automatik');
@@ -563,6 +581,21 @@ function renderAC(ac, data) {
     document.getElementById(`ac-current-${ac}`).textContent = `${data.temp_current} °C`;
     document.getElementById(`ac-set-${ac}`).textContent     = `${data.temp_set} °C`;
     document.getElementById(`ac-level-${ac}`).textContent   = levelLabel(data.level);
+    // Highlight active fan button
+    const levelToNum = { low: 1, middle: 2, high: 3 };
+    const activeFan = levelToNum[data.level] || 0;
+    [1, 2, 3].forEach(n => {
+        const btn = document.getElementById(`fan-${n}-${ac}`);
+        btn.className = 'fan-btn' + (n === activeFan ? ' active' : '');
+    });
+}
+
+async function setFan(ac, level) {
+    await fetch(`/api/ac/${ac}/fan`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level })
+    });
+    setTimeout(loadStatus, 2000);
 }
 
 async function setMode(ac, mode) {

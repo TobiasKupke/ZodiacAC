@@ -45,7 +45,9 @@ cache = {
     "ac_master": {},
     "ac_gaeste": {},
     "sensors": {},
+    "last_manual_fetch": {"master": 0, "gaeste": 0},
 }
+MANUAL_POLL_INTERVAL = 300  # 5 minutes
 
 # PI fan speed control defaults (overridable via settings.json)
 PI_DEFAULTS = {
@@ -181,6 +183,10 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     cache_key = f"ac_{ac_key}"
 
     if ac_settings.get("mode") != "auto":
+        now = time.time()
+        if now - cache["last_manual_fetch"].get(ac_key, 0) >= MANUAL_POLL_INTERVAL:
+            cache[cache_key] = get_ac_status(device_id)
+            cache["last_manual_fetch"][ac_key] = now
         return
 
     st = state[ac_key]
@@ -465,12 +471,19 @@ def api_set_mode(ac_key):
     return jsonify({"success": True, "mode": mode})
 
 
+def refresh_cache_after_manual(ac_key, device_id):
+    time.sleep(1)
+    cache[f"ac_{ac_key}"] = get_ac_status(device_id)
+    cache["last_manual_fetch"][ac_key] = time.time()
+
+
 @app.route("/api/ac/<ac_key>/on", methods=["POST"])
 def api_ac_on(ac_key):
     if ac_key not in ("master", "gaeste"):
         return jsonify({"error": "Invalid AC key"}), 400
     device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
     ac_turn_on(ac_key, device_id)
+    threading.Thread(target=refresh_cache_after_manual, args=(ac_key, device_id), daemon=True).start()
     return jsonify({"success": True})
 
 
@@ -480,6 +493,20 @@ def api_ac_off(ac_key):
         return jsonify({"error": "Invalid AC key"}), 400
     device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
     ac_turn_off(ac_key, device_id)
+    threading.Thread(target=refresh_cache_after_manual, args=(ac_key, device_id), daemon=True).start()
+    return jsonify({"success": True})
+
+
+@app.route("/api/ac/<ac_key>/fan", methods=["POST"])
+def api_ac_fan(ac_key):
+    if ac_key not in ("master", "gaeste"):
+        return jsonify({"error": "Invalid AC key"}), 400
+    level = request.json.get("level")
+    if level not in (1, 2, 3):
+        return jsonify({"error": "Invalid level (1/2/3)"}), 400
+    device_id = DEVICE_MASTER if ac_key == "master" else DEVICE_GAESTE
+    ac_set_fan_speed(ac_key, device_id, level)
+    threading.Thread(target=refresh_cache_after_manual, args=(ac_key, device_id), daemon=True).start()
     return jsonify({"success": True})
 
 
