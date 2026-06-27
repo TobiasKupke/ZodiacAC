@@ -128,8 +128,13 @@ def send_ac(device_id, commands):
 
 
 def get_ac_status(device_id):
-    result = cloud.cloudrequest(f"v1.0/devices/{device_id}/status")
-    return {item["code"]: item["value"] for item in result.get("result", [])}
+    try:
+        result = cloud.cloudrequest(f"v1.0/devices/{device_id}/status")
+        if result and result.get("success"):
+            return {item["code"]: item["value"] for item in result.get("result", [])}
+    except Exception as e:
+        print(f"[Tuya Error] {e}")
+    return None
 
 
 def ac_turn_on(ac_key, device_id):
@@ -185,7 +190,9 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     if ac_settings.get("mode") != "auto":
         now = time.time()
         if now - cache["last_manual_fetch"].get(ac_key, 0) >= MANUAL_POLL_INTERVAL:
-            cache[cache_key] = get_ac_status(device_id)
+            ac = get_ac_status(device_id)
+            if ac is not None:
+                cache[cache_key] = ac
             cache["last_manual_fetch"][ac_key] = now
         return
 
@@ -195,6 +202,8 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     # Detect physical remote use (only when we have expected state to compare)
     if any(v is not None for v in [st["expected_switch"], st["expected_level"], st["expected_temp"]]):
         ac = get_ac_status(device_id)
+        if ac is None:
+            return
         changed = (
             (st["expected_switch"] is not None and ac.get("switch")   != st["expected_switch"]) or
             (st["expected_level"]  is not None and ac.get("level")    != st["expected_level"])  or
@@ -210,10 +219,10 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
 
     # Outside time window: make sure AC is off
     if not is_in_time_window(settings["time_from"], settings["time_to"]):
-        if st["expected_switch"] is not False:  # Skip redundant API call if already confirmed off
+        if st["expected_switch"] is not False:
             if ac is None:
                 ac = get_ac_status(device_id)
-            if ac.get("switch", False):
+            if ac is not None and ac.get("switch", False):
                 print(f"[{ac_key}] Außerhalb Zeitfenster und AN → Ausschalten")
                 ac_turn_off(ac_key, device_id)
                 st["expected_level"] = None
@@ -234,6 +243,8 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     anti_windup = settings.get("anti_windup", PI_DEFAULTS["anti_windup"])
     if ac is None:
         ac = get_ac_status(device_id)
+    if ac is None:
+        return
     ac_on = ac.get("switch", False)
     diff  = sensor_temp - target
 
@@ -290,8 +301,9 @@ def automation_loop():
             run_ac_automation("gaeste", DEVICE_GAESTE, gaeste_temp, settings)
 
             # Log from cache — no extra Tuya API calls
-            log_status(schlaf_temp, gaeste_temp, wohn_temp,
-                       cache["ac_master"], cache["ac_gaeste"], settings)
+            ac_m = cache.get("ac_master") or {}
+            ac_g = cache.get("ac_gaeste") or {}
+            log_status(schlaf_temp, gaeste_temp, wohn_temp, ac_m, ac_g, settings)
 
         except Exception as e:
             print(f"[Automation Error] {e}")
@@ -473,7 +485,9 @@ def api_set_mode(ac_key):
 
 def refresh_cache_after_manual(ac_key, device_id):
     time.sleep(1)
-    cache[f"ac_{ac_key}"] = get_ac_status(device_id)
+    ac = get_ac_status(device_id)
+    if ac is not None:
+        cache[f"ac_{ac_key}"] = ac
     cache["last_manual_fetch"][ac_key] = time.time()
 
 
