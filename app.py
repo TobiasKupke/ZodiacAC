@@ -541,8 +541,15 @@ def startup_safe_state():
             ac_turn_off("gaeste", DEVICE_GAESTE)
             time.sleep(3)
 
-            master_on = get_ac_status(DEVICE_MASTER).get("switch", True)
-            gaeste_on = get_ac_status(DEVICE_GAESTE).get("switch", True)
+            master_status = get_ac_status(DEVICE_MASTER)
+            gaeste_status = get_ac_status(DEVICE_GAESTE)
+
+            if master_status is None or gaeste_status is None:
+                print(f"Startup: Versuch {attempt} — Tuya API nicht erreichbar, überspringe Verifikation")
+                continue
+
+            master_on = master_status.get("switch", True)
+            gaeste_on = gaeste_status.get("switch", True)
 
             if not master_on and not gaeste_on:
                 print(f"Startup: Beide Klimaanlagen sind AUS und auf Manuell. (Versuch {attempt})")
