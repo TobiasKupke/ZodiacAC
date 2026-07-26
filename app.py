@@ -27,6 +27,22 @@ cloud = tinytuya.Cloud(
     apiSecret=ACCESS_SECRET,
 )
 
+import sys
+import requests as _requests
+
+_tuya_session = _requests.Session()
+
+class _SessionRequests:
+    """Wrapper that routes get/post through a shared Session for connection reuse."""
+    def __getattr__(self, name):
+        return getattr(_requests, name)
+    def get(self, *a, **kw):
+        return _tuya_session.get(*a, **kw)
+    def post(self, *a, **kw):
+        return _tuya_session.post(*a, **kw)
+
+sys.modules['tinytuya.Cloud'].requests = _SessionRequests()
+
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 DB_FILE       = os.path.join(os.path.dirname(__file__), "history.db")
