@@ -1,10 +1,13 @@
+import gc
 import json
 import os
 import sqlite3
+import sys
 import threading
 import time
 from datetime import datetime
 
+import requests as _requests
 import tinytuya
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
@@ -21,27 +24,31 @@ DEVICE_GAESTE  = os.getenv("TUYA_DEVICE_ID_GAESTE")
 AC_TARGET_TEMP = 20  # Immer 20°C auf der Klimaanlage im Automatikmodus
 LEVEL_MAP      = {1: "low", 2: "middle", 3: "high"}
 
+# tinytuya internally uses requests.get()/requests.post() without a Session,
+# creating a full TCP+SSL connection per API call. Over days, the transient
+# Session/Pool/Connection objects accumulate faster than Python's cyclic GC
+# frees them, exhausting the OS file descriptor limit. Replacing the module's
+# requests reference with a Session-backed wrapper keeps ~2 persistent
+# connections instead of creating thousands of short-lived ones.
+_tuya_session = _requests.Session()
+
+class _SessionBackedRequests:
+    def __getattr__(self, name):
+        return getattr(_requests, name)
+    def get(self, *a, **kw):
+        kw.setdefault("timeout", 30)
+        return _tuya_session.get(*a, **kw)
+    def post(self, *a, **kw):
+        kw.setdefault("timeout", 30)
+        return _tuya_session.post(*a, **kw)
+
+sys.modules["tinytuya.Cloud"].requests = _SessionBackedRequests()
+
 cloud = tinytuya.Cloud(
     apiRegion="eu",
     apiKey=ACCESS_ID,
     apiSecret=ACCESS_SECRET,
 )
-
-import sys
-import requests as _requests
-
-_tuya_session = _requests.Session()
-
-class _SessionRequests:
-    """Wrapper that routes get/post through a shared Session for connection reuse."""
-    def __getattr__(self, name):
-        return getattr(_requests, name)
-    def get(self, *a, **kw):
-        return _tuya_session.get(*a, **kw)
-    def post(self, *a, **kw):
-        return _tuya_session.post(*a, **kw)
-
-sys.modules['tinytuya.Cloud'].requests = _SessionRequests()
 
 # --- Settings ---
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
@@ -300,8 +307,16 @@ def run_ac_automation(ac_key, device_id, sensor_temp, settings):
     cache[cache_key] = ac
 
 
+def _count_fds():
+    try:
+        return len(os.listdir(f"/proc/{os.getpid()}/fd"))
+    except OSError:
+        return -1
+
+
 # --- Automation Loop ---
 def automation_loop():
+    cycle = 0
     while True:
         try:
             settings = load_settings()
@@ -323,6 +338,12 @@ def automation_loop():
 
         except Exception as e:
             print(f"[Automation Error] {e}")
+
+        cycle += 1
+        if cycle % 60 == 0:
+            gc.collect()
+            fds = _count_fds()
+            print(f"[Health] cycle={cycle} fds={fds}")
 
         time.sleep(60)
 

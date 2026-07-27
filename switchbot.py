@@ -36,7 +36,7 @@ def get_headers():
 
 
 def get_sensor_status(device_id):
-    resp = _session.get(f"{BASE_URL}/v1.1/devices/{device_id}/status", headers=get_headers())
+    resp = _session.get(f"{BASE_URL}/v1.1/devices/{device_id}/status", headers=get_headers(), timeout=30)
     return resp.json().get("body", {})
 
 
