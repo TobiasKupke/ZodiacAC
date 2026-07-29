@@ -16,7 +16,7 @@ BASE_URL = "https://api.switch-bot.com"
 _session = requests.Session()
 
 SCHLAFZIMMER_ID  = os.getenv("SWITCHBOT_METER_PRO_CO2_ID")   # Meter Pro CO2 — Steuerungssensor
-WOHNZIMMER_ID    = os.getenv("SWITCHBOT_METER_PLUS_ID")       # Meter Plus 1
+BALKON_ID        = os.getenv("SWITCHBOT_METER_PLUS_ID")       # Meter Plus 1
 GAESTEZIMMER_ID  = "C89202466057"                              # Meter Plus 2
 
 
@@ -42,7 +42,7 @@ def get_sensor_status(device_id):
 
 def get_all_sensors():
     schlaf  = get_sensor_status(SCHLAFZIMMER_ID)
-    wohn    = get_sensor_status(WOHNZIMMER_ID)
+    wohn    = get_sensor_status(BALKON_ID)
     gaeste  = get_sensor_status(GAESTEZIMMER_ID)
     return {
         "schlafzimmer": {
@@ -52,8 +52,8 @@ def get_all_sensors():
             "co2": schlaf.get("CO2", 0),
             "battery": schlaf.get("battery", 0),
         },
-        "wohnzimmer": {
-            "name": "Wohnzimmer",
+        "balkon": {
+            "name": "Balkon",
             "temperature": wohn.get("temperature", 0),
             "humidity": wohn.get("humidity", 0),
             "battery": wohn.get("battery", 0),

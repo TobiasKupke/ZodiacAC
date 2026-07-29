@@ -73,7 +73,7 @@
         <div class="legend">
             <div class="legend-item"><div class="legend-dot" style="background:#5ab2e8"></div><span id="legSchlaf">Schlafzimmer</span></div>
             <div class="legend-item"><div class="legend-dot" style="background:#5ec97a"></div><span id="legGaeste">Gästezimmer</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:#f0c040"></div><span id="legWohn">Wohnzimmer</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f0c040"></div><span id="legWohn">Balkon</span></div>
         </div>
     </div>
 
@@ -111,7 +111,7 @@ const tr = {
         back:'← Steuerung', page_title:'Verlauf',
         range_7d:'7 Tage', range_30d:'30 Tage',
         temperaturen:'Temperaturen', schlafzimmer:'Schlafzimmer',
-        gaestezimmer:'Gästezimmer', wohnzimmer:'Wohnzimmer',
+        gaestezimmer:'Gästezimmer', balkon:'Balkon',
         ac_schlaf:'Klimaanlage Schlafzimmer', ac_gaeste:'Klimaanlage Gästezimmer',
         fan_legend:'Lüfterstärke (Aus=0 · Low=1 · Mid=2 · High=3)',
         man_legend:'Manuell-Phasen (Hintergrund)',
@@ -125,7 +125,7 @@ const tr = {
         back:'← Control', page_title:'History',
         range_7d:'7 days', range_30d:'30 days',
         temperaturen:'Temperatures', schlafzimmer:'Bedroom',
-        gaestezimmer:'Guest Room', wohnzimmer:'Living Room',
+        gaestezimmer:'Guest Room', balkon:'Balcony',
         ac_schlaf:'AC Bedroom', ac_gaeste:'AC Guest Room',
         fan_legend:'Fan speed (Off=0 · Low=1 · Mid=2 · High=3)',
         man_legend:'Manual phases (background)',
@@ -139,7 +139,7 @@ const tr = {
         back:'← Control', page_title:'Historial',
         range_7d:'7 días', range_30d:'30 días',
         temperaturen:'Temperaturas', schlafzimmer:'Dormitorio',
-        gaestezimmer:'Habitación huéspedes', wohnzimmer:'Sala de estar',
+        gaestezimmer:'Habitación huéspedes', balkon:'Balcón',
         ac_schlaf:'AC Dormitorio', ac_gaeste:'AC Habitación',
         fan_legend:'Vel. ventilador (Apag.=0 · Baja=1 · Med=2 · Alta=3)',
         man_legend:'Fases manuales (fondo)',
@@ -166,7 +166,7 @@ function applyLang() {
     document.getElementById('titleAcGaeste').textContent = l.ac_gaeste;
     document.getElementById('legSchlaf').textContent  = l.schlafzimmer;
     document.getElementById('legGaeste').textContent  = l.gaestezimmer;
-    document.getElementById('legWohn').textContent    = l.wohnzimmer;
+    document.getElementById('legWohn').textContent    = l.balkon;
     document.getElementById('legFanSchlaf').textContent  = l.fan_legend;
     document.getElementById('legFanGaeste').textContent  = l.fan_legend;
     document.getElementById('legManSchlaf').textContent  = l.man_legend;
@@ -246,7 +246,7 @@ function buildCharts(rows, range) {
         data:{ labels, datasets:[
             {label:t('schlafzimmer'), data:rows.map(r=>r.temp_schlaf), borderColor:'#5ab2e8', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.3},
             {label:t('gaestezimmer'),  data:rows.map(r=>r.temp_gaeste), borderColor:'#5ec97a', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.3},
-            {label:t('wohnzimmer'),   data:rows.map(r=>r.temp_wohn),   borderColor:'#f0c040', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.3},
+            {label:t('balkon'),   data:rows.map(r=>r.temp_wohn),   borderColor:'#f0c040', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:0.3},
         ]},
         options:{ responsive:true, maintainAspectRatio:false, animation:false,
             plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false}},

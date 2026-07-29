@@ -235,7 +235,7 @@
         </div>
 
         <div class="block">
-            <div class="block-title" data-i18n="wohnzimmer">🛋 Wohnzimmer</div>
+            <div class="block-title" data-i18n="balkon">🌿 Balkon</div>
             <div class="metric"><span class="metric-label" data-i18n="temperatur">Temperatur</span><span class="metric-value accent" id="plus-temp">…</span></div>
             <div class="metric"><span class="metric-label" data-i18n="luftfeuchtigkeit">Luftfeuchtigkeit</span><span class="metric-value" id="plus-humidity">…</span></div>
             <div class="metric"><span class="metric-label" data-i18n="batterie">Batterie</span><span class="metric-value" id="plus-battery">…</span></div>
@@ -359,7 +359,7 @@
 const translations = {
     de: {
         titel: 'Klimasteuerung', sensoren: 'Sensoren',
-        schlafzimmer: '🛏 Schlafzimmer', gaestezimmer: '🚪 Gästezimmer', wohnzimmer: '🛋 Wohnzimmer',
+        schlafzimmer: '🛏 Schlafzimmer', gaestezimmer: '🚪 Gästezimmer', balkon: '🌿 Balkon',
         temperatur: 'Temperatur', luftfeuchtigkeit: 'Luftfeuchtigkeit', batterie: 'Batterie',
         einstellungen: 'Einstellungen', hysterese: 'Hysterese', aktive_zeit: 'Aktive Zeit', bis: 'bis',
         schlafzimmer_steuerung: '🛏 Schlafzimmer – Steuerung', gaestezimmer_steuerung: '🚪 Gästezimmer – Steuerung',
@@ -374,7 +374,7 @@ const translations = {
     },
     en: {
         titel: 'Climate Control', sensoren: 'Sensors',
-        schlafzimmer: '🛏 Bedroom', gaestezimmer: '🚪 Guest Room', wohnzimmer: '🛋 Living Room',
+        schlafzimmer: '🛏 Bedroom', gaestezimmer: '🚪 Guest Room', balkon: '🌿 Balcony',
         temperatur: 'Temperature', luftfeuchtigkeit: 'Humidity', batterie: 'Battery',
         einstellungen: 'Settings', hysterese: 'Hysteresis', aktive_zeit: 'Active Hours', bis: 'to',
         schlafzimmer_steuerung: '🛏 Bedroom – Control', gaestezimmer_steuerung: '🚪 Guest Room – Control',
@@ -389,7 +389,7 @@ const translations = {
     },
     es: {
         titel: 'Control de Clima', sensoren: 'Sensores',
-        schlafzimmer: '🛏 Dormitorio', gaestezimmer: '🚪 Cuarto de Huéspedes', wohnzimmer: '🛋 Sala de Estar',
+        schlafzimmer: '🛏 Dormitorio', gaestezimmer: '🚪 Cuarto de Huéspedes', balkon: '🌿 Balcón',
         temperatur: 'Temperatura', luftfeuchtigkeit: 'Humedad', batterie: 'Batería',
         einstellungen: 'Ajustes', hysterese: 'Histéresis', aktive_zeit: 'Horario Activo', bis: 'hasta',
         schlafzimmer_steuerung: '🛏 Dormitorio – Control', gaestezimmer_steuerung: '🚪 Huéspedes – Control',
@@ -614,7 +614,7 @@ async function acControl(ac, action) {
 async function loadStatus() {
     try {
         const data = await fetch('/api/status').then(r => r.json());
-        const { schlafzimmer: s, wohnzimmer: w, gaestezimmer: g } = data.sensors;
+        const { schlafzimmer: s, balkon: w, gaestezimmer: g } = data.sensors;
 
         document.getElementById('co2-temp').textContent      = `${s.temperature} °C`;
         document.getElementById('co2-humidity').textContent  = `${s.humidity} %`;

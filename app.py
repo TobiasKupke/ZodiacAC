@@ -326,7 +326,7 @@ def automation_loop():
             cache["sensors"] = sensors
             schlaf_temp = sensors["schlafzimmer"]["temperature"]
             gaeste_temp = sensors["gaestezimmer"]["temperature"]
-            wohn_temp   = sensors["wohnzimmer"]["temperature"]
+            wohn_temp   = sensors["balkon"]["temperature"]
 
             run_ac_automation("master", DEVICE_MASTER, schlaf_temp, settings)
             run_ac_automation("gaeste", DEVICE_GAESTE, gaeste_temp, settings)
