@@ -446,8 +446,8 @@ def api_post_tuning():
 @app.route("/api/history")
 def api_history():
     range_param = request.args.get("range", "24h")
-    step = {"6h": 1, "24h": 5, "7d": 10, "30d": 60}.get(range_param, 5)
-    since = int(time.time()) - {"6h": 21600, "24h": 86400, "7d": 604800, "30d": 2592000}.get(range_param, 86400)
+    step = {"6h": 1, "24h": 5, "7d": 10, "30d": 60, "90d": 180, "1y": 720}.get(range_param, 5)
+    since = int(time.time()) - {"6h": 21600, "24h": 86400, "7d": 604800, "30d": 2592000, "90d": 7776000, "1y": 31536000}.get(range_param, 86400)
 
     with sqlite3.connect(DB_FILE) as conn:
         conn.row_factory = sqlite3.Row

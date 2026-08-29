@@ -37,7 +37,7 @@
         .status-bar{text-align:center;color:var(--text-dim);font-size:.75rem;margin-top:16px;}
     </style>
     <script>
-        const themes={belgrano:{'--bg':'#080d18','--bg-card':'#0d1525','--bg-inner':'#060b14','--border':'#1a2a45','--accent':'#3e9bd4','--accent-hover':'#5ab2e8','--text':'#f0f4ff','--text-muted':'#7a9bbf','--text-dim':'#3a5070','--green':'#4caf50','--red':'#e05050'},nob:{'--bg':'#0f0f0f','--bg-card':'#1a1a1a','--bg-inner':'#111111','--border':'#2e2e2e','--accent':'#c8102e','--accent-hover':'#e0152e','--text':'#f5f5f5','--text-muted':'#999999','--text-dim':'#555555','--green':'#4caf50','--red':'#c8102e'},lotaro:{'--bg':'#132d28','--bg-card':'#1a3a33','--bg-inner':'#112824','--border':'#254d44','--accent':'#e8d96a','--accent-hover':'#f0e580','--text':'#f0ede4','--text-muted':'#8aada6','--text-dim':'#4d7a70','--green':'#5ec97a','--red':'#e06060'},rg:{'--bg':'#0c1f10','--bg-card':'#122918','--bg-inner':'#09180d','--border':'#1e3d26','--accent':'#c8562a','--accent-hover':'#e06030','--text':'#f5f0e8','--text-muted':'#8aaa8e','--text-dim':'#3a5e40','--green':'#5ec97a','--red':'#c8562a'},boca:{'--bg':'#00143c','--bg-card':'#001f58','--bg-inner':'#000f2c','--border':'#002b7a','--accent':'#f5d000','--accent-hover':'#fce030','--text':'#ffffff','--text-muted':'#a0b8e8','--text-dim':'#3a5490','--green':'#4cde80','--red':'#ff4040'}};
+        const themes={belgrano:{'--bg':'#080d18','--bg-card':'#0d1525','--bg-inner':'#060b14','--border':'#1a2a45','--accent':'#3e9bd4','--accent-hover':'#5ab2e8','--text':'#f0f4ff','--text-muted':'#7a9bbf','--text-dim':'#3a5070','--green':'#4caf50','--red':'#e05050'},lotaro:{'--bg':'#132d28','--bg-card':'#1a3a33','--bg-inner':'#112824','--border':'#254d44','--accent':'#e8d96a','--accent-hover':'#f0e580','--text':'#f0ede4','--text-muted':'#8aada6','--text-dim':'#4d7a70','--green':'#5ec97a','--red':'#e06060'},rg:{'--bg':'#0c1f10','--bg-card':'#122918','--bg-inner':'#09180d','--border':'#1e3d26','--accent':'#c8562a','--accent-hover':'#e06030','--text':'#f5f0e8','--text-muted':'#8aaa8e','--text-dim':'#3a5e40','--green':'#5ec97a','--red':'#c8562a'}};
         const tv=themes[localStorage.getItem('theme')]||themes.belgrano;
         Object.entries(tv).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
     </script>
@@ -59,6 +59,8 @@
     <button class="range-btn active" onclick="loadRange('24h')">24h</button>
     <button class="range-btn" id="btn7d" onclick="loadRange('7d')">7 Tage</button>
     <button class="range-btn" id="btn30d" onclick="loadRange('30d')">30 Tage</button>
+    <button class="range-btn" id="btn90d" onclick="loadRange('90d')">90 Tage</button>
+    <button class="range-btn" id="btn1y" onclick="loadRange('1y')">1 Jahr</button>
 </div>
 
 <div class="stripe"></div>
@@ -109,7 +111,7 @@
 const tr = {
     de: {
         back:'← Steuerung', page_title:'Verlauf',
-        range_7d:'7 Tage', range_30d:'30 Tage',
+        range_7d:'7 Tage', range_30d:'30 Tage', range_90d:'90 Tage', range_1y:'1 Jahr',
         temperaturen:'Temperaturen', schlafzimmer:'Schlafzimmer',
         gaestezimmer:'Gästezimmer', balkon:'Balkon',
         ac_schlaf:'Klimaanlage Schlafzimmer', ac_gaeste:'Klimaanlage Gästezimmer',
@@ -123,7 +125,7 @@ const tr = {
     },
     en: {
         back:'← Control', page_title:'History',
-        range_7d:'7 days', range_30d:'30 days',
+        range_7d:'7 days', range_30d:'30 days', range_90d:'90 days', range_1y:'1 year',
         temperaturen:'Temperatures', schlafzimmer:'Bedroom',
         gaestezimmer:'Guest Room', balkon:'Balcony',
         ac_schlaf:'AC Bedroom', ac_gaeste:'AC Guest Room',
@@ -137,7 +139,7 @@ const tr = {
     },
     es: {
         back:'← Control', page_title:'Historial',
-        range_7d:'7 días', range_30d:'30 días',
+        range_7d:'7 días', range_30d:'30 días', range_90d:'90 días', range_1y:'1 año',
         temperaturen:'Temperaturas', schlafzimmer:'Dormitorio',
         gaestezimmer:'Habitación huéspedes', balkon:'Balcón',
         ac_schlaf:'AC Dormitorio', ac_gaeste:'AC Habitación',
@@ -161,6 +163,8 @@ function applyLang() {
     document.getElementById('pageTitle').textContent = l.page_title;
     document.getElementById('btn7d').textContent     = l.range_7d;
     document.getElementById('btn30d').textContent    = l.range_30d;
+    document.getElementById('btn90d').textContent    = l.range_90d;
+    document.getElementById('btn1y').textContent     = l.range_1y;
     document.getElementById('titleTemp').textContent    = l.temperaturen;
     document.getElementById('titleAcSchlaf').textContent = l.ac_schlaf;
     document.getElementById('titleAcGaeste').textContent = l.ac_gaeste;
@@ -228,7 +232,7 @@ function manualPlugin(bands) {
 }
 
 function timeUnit(range) {
-    return {'6h':'hour','24h':'hour','7d':'hour','30d':'day'}[range] || 'hour';
+    return {'6h':'hour','24h':'hour','7d':'hour','30d':'day','90d':'day','1y':'week'}[range] || 'hour';
 }
 
 function buildCharts(rows, range) {

@@ -169,10 +169,6 @@
         <button class="theme-btn active" id="theme-belgrano" onclick="setTheme('belgrano')" title="Club Atlético Belgrano">
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Escudo_Oficial_del_Club_Atl%C3%A9tico_Belgrano.png" style="width:28px;height:28px;object-fit:contain;" alt="Belgrano">
         </button>
-        <!-- NOB -->
-        <button class="theme-btn" id="theme-nob" onclick="setTheme('nob')" title="Newell's Old Boys">
-            <img src="/static/nob_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="NOB">
-        </button>
         <!-- Lotaro -->
         <button class="theme-btn" id="theme-lotaro" onclick="setTheme('lotaro')" title="Lotaro">
             <svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
@@ -184,10 +180,6 @@
         <!-- Roland Garros -->
         <button class="theme-btn" id="theme-rg" onclick="setTheme('rg')" title="Roland Garros · French Open">
             <img src="/static/rg_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Roland Garros">
-        </button>
-        <!-- Boca Juniors -->
-        <button class="theme-btn" id="theme-boca" onclick="setTheme('boca')" title="Club Atlético Boca Juniors">
-            <img src="/static/boca_logo.png" style="width:28px;height:28px;object-fit:contain;" alt="Boca Juniors">
         </button>
     </div>
 
@@ -419,17 +411,6 @@ const themes = {
         stripe: 'linear-gradient(90deg,transparent 0%,#3e9bd4 40%,#f0f4ff 50%,#3e9bd4 60%,transparent 100%)',
         logo: `<img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Escudo_Oficial_del_Club_Atl%C3%A9tico_Belgrano.png" style="width:64px;height:64px;object-fit:contain;" alt="Belgrano">`
     },
-    nob: {
-        club: "Newell's Old Boys · Rosario",
-        vars: {
-            '--bg':'#0f0f0f','--bg-card':'#1a1a1a','--bg-inner':'#111111',
-            '--border':'#2e2e2e','--accent':'#c8102e','--accent-hover':'#e0152e',
-            '--text':'#f5f5f5','--text-muted':'#999999','--text-dim':'#555555',
-            '--green':'#4caf50','--red':'#c8102e'
-        },
-        stripe: 'linear-gradient(90deg,#0f0f0f 0%,#c8102e 50%,#0f0f0f 100%)',
-        logo: `<img src="/static/nob_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="NOB">`
-    },
     lotaro: {
         club: 'Lotaro · Performance Trainings',
         vars: {
@@ -455,17 +436,6 @@ const themes = {
         },
         stripe: 'linear-gradient(90deg,#0c1f10 0%,#c8562a 40%,#f5f0e8 50%,#c8562a 60%,#0c1f10 100%)',
         logo: `<img src="/static/rg_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Roland Garros">`
-    },
-    boca: {
-        club: 'Club Atlético Boca Juniors · Buenos Aires',
-        vars: {
-            '--bg':'#00143c','--bg-card':'#001f58','--bg-inner':'#000f2c',
-            '--border':'#002b7a','--accent':'#f5d000','--accent-hover':'#fce030',
-            '--text':'#ffffff','--text-muted':'#a0b8e8','--text-dim':'#3a5490',
-            '--green':'#4cde80','--red':'#ff4040'
-        },
-        stripe: 'linear-gradient(90deg,#00143c 0%,#f5d000 35%,#ffffff 50%,#f5d000 65%,#00143c 100%)',
-        logo: `<img src="/static/boca_logo.png" style="width:64px;height:64px;object-fit:contain;" alt="Boca Juniors">`
     },
 };
 
@@ -508,6 +478,7 @@ function t(key) {
 // THEMES
 // ═══════════════════════════════════════════
 function setTheme(name) {
+    if (!themes[name]) name = 'belgrano';
     currentTheme = name;
     localStorage.setItem('theme', name);
     const theme = themes[name];
